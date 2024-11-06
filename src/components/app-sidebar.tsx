@@ -29,109 +29,92 @@ import {
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
+    name: "user",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
+      name: "Entraide Nationale",
+      logo: "/entraide.png",
       plan: "Enterprise",
     },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
+
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Centres",
       url: "#",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Listes des centres",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Ajouter un centre",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Statistiques",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Beneficiaires",
       url: "#",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Listes des beneficiaires",
           url: "#",
         },
         {
-          title: "Explorer",
+          title: "Ajouter un beneficiaire",
           url: "#",
         },
         {
-          title: "Quantum",
+          title: "Statistiques",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Activités",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
+          title: "Listes des activités",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Ajouter une activité",
           url: "#",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
+          title: "Statistiques",
           url: "#",
         },
       ],
     },
     {
-      title: "Settings",
+      title: "Personnels",
       url: "#",
       icon: Settings2,
       items: [
         {
-          title: "General",
+          title: "Listes des personnels",
           url: "#",
         },
         {
-          title: "Team",
+          title: "Ajouter un personnel",
           url: "#",
         },
         {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
+          title: "Statistiques",
           url: "#",
         },
       ],
@@ -139,17 +122,17 @@ const data = {
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: "Filières",
       url: "#",
       icon: Frame,
     },
     {
-      name: "Sales & Marketing",
+      name: "Ajouter un rapport de suivi de formation",
       url: "#",
       icon: PieChart,
     },
     {
-      name: "Travel",
+      name: "localisation des centres",
       url: "#",
       icon: Map,
     },
@@ -160,7 +143,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={data.teams.map(team => ({
+          ...team,
+          logo: typeof team.logo === 'string' ? () => <img src={team.logo} alt={`${team.name} logo`} /> : team.logo
+        }))} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
