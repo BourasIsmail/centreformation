@@ -1,17 +1,20 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import {
   AudioWaveform,
   BookOpen,
-  Bot,
+  Users,
   Command,
   Frame,
   GalleryVerticalEnd,
   Map,
-  PieChart,
+  UserCog,
   Settings2,
-  SquareTerminal,
+  Building2,
+  GraduationCap,
+  Clipboard,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -37,15 +40,14 @@ const data = {
     {
       name: "Entraide Nationale",
       logo: "/entraide.png",
-      plan: "Enterprise",
+      plan: "EN",
     },
-
   ],
   navMain: [
     {
       title: "Centres",
       url: "#",
-      icon: SquareTerminal,
+      icon: Building2,
       isActive: true,
       items: [
         {
@@ -65,7 +67,7 @@ const data = {
     {
       title: "Beneficiaires",
       url: "#",
-      icon: Bot,
+      icon: Users,
       items: [
         {
           title: "Listes des beneficiaires",
@@ -103,7 +105,7 @@ const data = {
     {
       title: "Personnels",
       url: "#",
-      icon: Settings2,
+      icon: UserCog,
       items: [
         {
           title: "Listes des personnels",
@@ -123,13 +125,13 @@ const data = {
   projects: [
     {
       name: "Filières",
+      icon: GraduationCap,
       url: "#",
-      icon: Frame,
     },
     {
       name: "Ajouter un rapport de suivi de formation",
+      icon: Clipboard,
       url: "#",
-      icon: PieChart,
     },
     {
       name: "localisation des centres",
@@ -143,10 +145,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams.map(team => ({
-          ...team,
-          logo: typeof team.logo === 'string' ? () => <img src={team.logo} alt={`${team.name} logo`} /> : team.logo
-        }))} />
+        <TeamSwitcher
+          teams={data.teams.map(team => ({
+            ...team,
+            logo: () => (
+              <Image
+                src={team.logo}
+                alt={`${team.name} logo`}
+                width={32}
+                height={32}
+                className="rounded-md"
+              />
+            ),
+          }))}
+        />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
