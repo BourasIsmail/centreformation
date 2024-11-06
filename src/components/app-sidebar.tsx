@@ -52,15 +52,15 @@ const data = {
       items: [
         {
           title: "Listes des centres",
-          url: "#",
+          url: "/centres",
         },
         {
           title: "Ajouter un centre",
-          url: "#",
+          url: "/centres/ajouter",
         },
         {
           title: "Statistiques",
-          url: "#",
+          url: "/centres/statistiques",
         },
       ],
     },

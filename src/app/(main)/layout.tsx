@@ -2,6 +2,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar";
 import { DynamicBreadcrumbComponent } from "@/components/dynamic-breadcrumb";
 import { Separator } from "@/components/ui/separator"
+import { Toaster } from "@/components/ui/toaster";
 
 export default function MainLayout({
     children,
@@ -20,6 +21,7 @@ export default function MainLayout({
                     </div>
                 </header>
                 {children}
+                <Toaster />
             </SidebarInset>
         </SidebarProvider>
     );
