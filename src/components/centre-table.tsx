@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   CaretSortIcon,
   ChevronDownIcon,
@@ -9,13 +9,11 @@ import {
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
   DotsHorizontalIcon,
-  CheckIcon,
   MagnifyingGlassIcon,
   CircleIcon,
   StopwatchIcon,
   CheckCircledIcon,
-  CrossCircledIcon,
-} from "@radix-ui/react-icons"
+} from "@radix-ui/react-icons";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -27,10 +25,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -39,8 +37,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -48,25 +46,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export type Centre = {
-  id: number
-  nomFr: string
-  typeCentre: { id: number; nom: string }
-  commune: { id: number; nom: string }
-  adresse: string
-  etat: string
-}
+  id: number;
+  nomFr: string;
+  typeCentre: { id: number; nom: string };
+  commune: { id: number; nom: string };
+  adresse: string;
+  etat: string;
+};
 
 const data: Centre[] = [
   {
@@ -109,7 +106,7 @@ const data: Centre[] = [
     adresse: "230 Avenue des FAR, Fès",
     etat: "Moyen",
   },
-]
+];
 
 const statuses = [
   {
@@ -127,12 +124,12 @@ const statuses = [
     label: "Mauvais",
     icon: CheckCircledIcon,
   },
-]
+];
 
 const typeCentres = [
   { id: 1, nom: "CFA" },
   { id: 2, nom: "CEF" },
-]
+];
 
 export const columns: ColumnDef<Centre>[] = [
   {
@@ -165,7 +162,7 @@ export const columns: ColumnDef<Centre>[] = [
           Nom
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => <div>{row.getValue("nomFr")}</div>,
   },
@@ -173,20 +170,22 @@ export const columns: ColumnDef<Centre>[] = [
     accessorKey: "typeCentre",
     header: "Type de Centre",
     cell: ({ row }) => {
-      const typeCentre = row.getValue("typeCentre") as { nom: string } | undefined
+      const typeCentre = row.getValue("typeCentre") as
+        | { nom: string }
+        | undefined;
       return (
         <Badge variant="outline" className="font-normal">
           {typeCentre?.nom || "N/A"}
         </Badge>
-      )
+      );
     },
   },
   {
     accessorKey: "commune",
     header: "Commune",
     cell: ({ row }) => {
-      const commune = row.getValue("commune") as { nom: string } | undefined
-      return commune?.nom || "N/A"
+      const commune = row.getValue("commune") as { nom: string } | undefined;
+      return commune?.nom || "N/A";
     },
   },
   {
@@ -198,29 +197,29 @@ export const columns: ColumnDef<Centre>[] = [
     accessorKey: "etat",
     header: "État",
     cell: ({ row }) => {
-      const etat = row.getValue("etat") as string
+      const etat = row.getValue("etat") as string;
       return (
         <Badge
           variant={
             etat === "Bon"
               ? "secondary"
               : etat === "Moyen"
-                ? "default"
-                : etat === "Mauvais"
-                  ? "outline"
-                  : "destructive"
+              ? "default"
+              : etat === "Mauvais"
+              ? "outline"
+              : "destructive"
           }
         >
           {etat}
         </Badge>
-      )
+      );
     },
   },
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const centre = row.original
+      const centre = row.original;
 
       return (
         <DropdownMenu>
@@ -239,18 +238,21 @@ export const columns: ColumnDef<Centre>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];
 
 export function CentreTableComponent() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [statusFilter, setStatusFilter] = React.useState<string[]>([])
-  const [typeCentreFilter, setTypeCentreFilter] = React.useState<string[]>([])
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
+  const [typeCentreFilter, setTypeCentreFilter] = React.useState<string[]>([]);
 
   const table = useReactTable({
     data,
@@ -269,21 +271,25 @@ export function CentreTableComponent() {
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   // Apply the status filter
   React.useEffect(() => {
-    table.getColumn("etat")?.setFilterValue(statusFilter.length ? statusFilter : undefined)
-  }, [statusFilter, table])
+    table
+      .getColumn("etat")
+      ?.setFilterValue(statusFilter.length ? statusFilter : undefined);
+  }, [statusFilter, table]);
 
   // Apply the type centre filter
   React.useEffect(() => {
-    table.getColumn("typeCentre")?.setFilterValue(
-      typeCentreFilter.length
-        ? (value: any) => typeCentreFilter.includes(value?.nom)
-        : undefined
-    )
-  }, [typeCentreFilter, table])
+    table
+      .getColumn("typeCentre")
+      ?.setFilterValue(
+        typeCentreFilter.length
+          ? (value: { nom: string }) => typeCentreFilter.includes(value?.nom)
+          : undefined
+      );
+  }, [typeCentreFilter, table]);
 
   return (
     <Card>
@@ -302,7 +308,9 @@ export function CentreTableComponent() {
           />
           <Input
             placeholder="Filtrer par adresse..."
-            value={(table.getColumn("adresse")?.getFilterValue() as string) ?? ""}
+            value={
+              (table.getColumn("adresse")?.getFilterValue() as string) ?? ""
+            }
             onChange={(event) =>
               table.getColumn("adresse")?.setFilterValue(event.target.value)
             }
@@ -323,11 +331,13 @@ export function CentreTableComponent() {
                     placeholder="Rechercher un type..."
                     className="h-8 w-full"
                     onChange={(event) => {
-                      const searchValue = event.target.value.toLowerCase()
-                      const filteredTypes = typeCentres.filter(type =>
-                        type.nom.toLowerCase().includes(searchValue)
-                      ).map(type => type.nom)
-                      setTypeCentreFilter(filteredTypes)
+                      const searchValue = event.target.value.toLowerCase();
+                      const filteredTypes = typeCentres
+                        .filter((type) =>
+                          type.nom.toLowerCase().includes(searchValue)
+                        )
+                        .map((type) => type.nom);
+                      setTypeCentreFilter(filteredTypes);
                     }}
                   />
                 </div>
@@ -342,18 +352,21 @@ export function CentreTableComponent() {
                     <Checkbox
                       checked={typeCentreFilter.includes(type.nom)}
                       onCheckedChange={(checked) => {
-                        setTypeCentreFilter(prev =>
+                        setTypeCentreFilter((prev) =>
                           checked
                             ? [...prev, type.nom]
-                            : prev.filter(t => t !== type.nom)
-                        )
+                            : prev.filter((t) => t !== type.nom)
+                        );
                       }}
                     />
                     <div className="flex flex-1 items-center space-x-2">
                       <span className="text-sm">{type.nom}</span>
                     </div>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {data.filter((item) => item.typeCentre.nom === type.nom).length}
+                      {
+                        data.filter((item) => item.typeCentre.nom === type.nom)
+                          .length
+                      }
                     </span>
                   </div>
                 ))}
@@ -364,7 +377,7 @@ export function CentreTableComponent() {
                   variant="ghost"
                   className="w-full justify-center text-sm"
                   onClick={() => {
-                    setTypeCentreFilter([])
+                    setTypeCentreFilter([]);
                   }}
                 >
                   Réinitialiser les filtres
@@ -387,11 +400,13 @@ export function CentreTableComponent() {
                     placeholder="Rechercher un statut..."
                     className="h-8 w-full"
                     onChange={(event) => {
-                      const searchValue = event.target.value.toLowerCase()
-                      const filteredStatuses = statuses.filter(status =>
-                        status.label.toLowerCase().includes(searchValue)
-                      ).map(status => status.value)
-                      setStatusFilter(filteredStatuses)
+                      const searchValue = event.target.value.toLowerCase();
+                      const filteredStatuses = statuses
+                        .filter((status) =>
+                          status.label.toLowerCase().includes(searchValue)
+                        )
+                        .map((status) => status.value);
+                      setStatusFilter(filteredStatuses);
                     }}
                   />
                 </div>
@@ -406,11 +421,11 @@ export function CentreTableComponent() {
                     <Checkbox
                       checked={statusFilter.includes(status.value)}
                       onCheckedChange={(checked) => {
-                        setStatusFilter(prev =>
+                        setStatusFilter((prev) =>
                           checked
                             ? [...prev, status.value]
-                            : prev.filter(s => s !== status.value)
-                        )
+                            : prev.filter((s) => s !== status.value)
+                        );
                       }}
                     />
                     <div className="flex flex-1 items-center space-x-2">
@@ -429,7 +444,7 @@ export function CentreTableComponent() {
                   variant="ghost"
                   className="w-full justify-center text-sm"
                   onClick={() => {
-                    setStatusFilter([])
+                    setStatusFilter([]);
                   }}
                 >
                   Réinitialiser les filtres
@@ -460,16 +475,16 @@ export function CentreTableComponent() {
                       {column.id === "nomFr"
                         ? "Nom"
                         : column.id === "typeCentre"
-                          ? "Type de Centre"
-                          : column.id === "commune"
-                            ? "Commune"
-                            : column.id === "adresse"
-                              ? "Adresse"
-                              : column.id === "etat"
-                                ? "État"
-                                : column.id}
+                        ? "Type de Centre"
+                        : column.id === "commune"
+                        ? "Commune"
+                        : column.id === "adresse"
+                        ? "Adresse"
+                        : column.id === "etat"
+                        ? "État"
+                        : column.id}
                     </DropdownMenuCheckboxItem>
-                  )
+                  );
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -485,11 +500,11 @@ export function CentreTableComponent() {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
-                    )
+                    );
                   })}
                 </TableRow>
               ))}
@@ -503,14 +518,20 @@ export function CentreTableComponent() {
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
                     Aucun résultat.
                   </TableCell>
                 </TableRow>
@@ -530,7 +551,7 @@ export function CentreTableComponent() {
                 className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm outline-none"
                 value={table.getState().pagination.pageSize}
                 onChange={(e) => {
-                  table.setPageSize(Number(e.target.value))
+                  table.setPageSize(Number(e.target.value));
                 }}
               >
                 {[10, 20, 30, 40, 50].map((pageSize) => (
@@ -586,5 +607,5 @@ export function CentreTableComponent() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

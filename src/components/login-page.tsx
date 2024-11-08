@@ -1,111 +1,107 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { EyeIcon, EyeOffIcon } from "lucide-react"
-import Image from "next/image"
+import Image from "next/image";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Add your login logic here
+    console.log("Login attempt with:", { email, password });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Login Form Section */}
-      <div className="flex w-full flex-col items-center justify-center px-4 py-12 lg:w-1/2 lg:px-8">
-        <div className="w-full max-w-md space-y-8">
-          <div className="space-y-2 text-center">
-            <p className="text-sm text-muted-foreground">Start your journey</p>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Sign Up to InsideBox</h1>
+    <div className="flex min-h-screen">
+      <div className="flex w-full lg:w-1/2 flex-col px-8 py-12 justify-center">
+        <div className="mb-12">
+          <div className="mb-8">
+            <Image
+              src="/logo.png"
+              alt="ENTRAIDE NATIONALE - Kingdom of Morocco National Mutual Aid"
+              width={500}
+              height={200}
+              className="h-auto"
+              priority
+            />
           </div>
-
-          <form className="space-y-4">
+          <h1 className="text-3xl font-bold mb-2">
+            GESTION DES CENTRES CFA/CEF
+          </h1>
+        </div>
+        <div className="w-full max-w-md">
+          <h2 className="text-3xl font-bold mb-8">Login</h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
               <Input
+                id="email"
+                placeholder="Enter your email"
                 type="email"
-                placeholder="example@email.com"
-                className="h-11 bg-secondary px-4 sm:h-12"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
-            <div className="relative space-y-2">
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
+                  id="password"
+                  placeholder="Enter your password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="h-11 bg-secondary px-4 pr-10 sm:h-12"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
-                <button
+                <Button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={togglePasswordVisibility}
                 >
                   {showPassword ? (
-                    <EyeOffIcon className="h-5 w-5" />
+                    <EyeOffIcon className="h-4 w-4 text-gray-500" />
                   ) : (
-                    <EyeIcon className="h-5 w-5" />
+                    <EyeIcon className="h-4 w-4 text-gray-500" />
                   )}
-                </button>
+                  <span className="sr-only">
+                    {showPassword ? "Hide password" : "Show password"}
+                  </span>
+                </Button>
               </div>
             </div>
-            <Button type="submit" className="h-11 w-full bg-blue-500 text-white hover:bg-blue-600 sm:h-12">
-              Sign Up
+            <Button
+              className="w-full bg-[#00833e] hover:bg-[#006b33] text-white py-6"
+              type="submit"
+            >
+              LOGIN
             </Button>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or sign up with</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <Button variant="outline" className="h-11 sm:h-12">
-              <Image
-                src="/placeholder.svg?height=24&width=24"
-                alt="Facebook"
-                className="h-5 w-5 sm:h-6 sm:w-6"
-                height={24}
-                width={24}
-              />
-            </Button>
-            <Button variant="outline" className="h-11 sm:h-12">
-              <Image
-                src="/placeholder.svg?height=24&width=24"
-                alt="Google"
-                className="h-5 w-5 sm:h-6 sm:w-6"
-                height={24}
-                width={24}
-              />
-            </Button>
-            <Button variant="outline" className="h-11 sm:h-12">
-              <Image
-                src="/placeholder.svg?height=24&width=24"
-                alt="Apple"
-                className="h-5 w-5 sm:h-6 sm:w-6"
-                height={24}
-                width={24}
-              />
-            </Button>
-          </div>
         </div>
       </div>
-
-      {/* Illustration Section */}
-      <div className="bg-gray-50 p-6 lg:w-1/2">
-        <div className="flex h-full items-center justify-center">
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-pu9uGLCM8ec2i50xagnr0h8I8MvpCG.png"
-            alt="Illustration of person working at desk"
-            width={600}
-            height={600}
-            className="max-h-[300px] w-auto object-contain sm:max-h-[400px] lg:max-h-full"
-            priority
-          />
-        </div>
+      <div className="hidden lg:flex w-1/2 bg-[#f0f9f4] items-center justify-center p-12">
+        <Image
+          alt="Login illustration"
+          className="w-full max-w-2xl"
+          height={600}
+          width={600}
+          src="/placeholder.svg"
+          priority
+        />
       </div>
     </div>
-  )
+  );
 }

@@ -1,0 +1,241 @@
+INSERT INTO centre (
+    nom_fr, nom_ar, type_centre_id, date_construction, telephone, 
+    province_id, commune_id, adresse, responsable_id, milieu_implantation_id, 
+    superficie, utilisation, etat, electricite, telephone_fixe, 
+    internet, nbr_pc, nbr_imprimante, nbr_personne_connaissance_info, 
+    nbr_personne_operationel_apres_formation, cout_estimation_amenagement, 
+    cout_estimation_equipement, observation
+) VALUES 
+(
+    'Centre de Formation Professionnelle Casablanca', 'مركز التكوين المهني الدار البيضاء', 1, '2010-05-15', '0522123456',
+    1, 1, '123 Rue Mohammed V, Casablanca', 1, 1,
+    1500.5, 'Formation en informatique et gestion', 'Bon état', 'Fonctionnel', '0522123457',
+    'Fibre optique', 50, 10, 5, 20, 500000.00, 750000.00,
+    'Centre moderne avec équipements récents'
+),
+(
+    'Institut Technique Agricole de Meknès', 'المعهد التقني الزراعي بمكناس', 2, '1995-09-01', '0535467890',
+    2, 2, '45 Avenue Hassan II, Meknès', 2, 2,
+    2000.0, 'Formation en agriculture et élevage', 'Nécessite rénovation', 'Stable', '0535467891',
+    'ADSL', 30, 5, 3, 15, 300000.00, 500000.00,
+    'Besoin de modernisation des équipements agricoles'
+),
+(
+    'École des Métiers du Bâtiment Marrakech', 'مدرسة مهن البناء مراكش', 3, '2015-11-30', '0524789012',
+    3, 3, '78 Rue Bab Agnaou, Marrakech', 3, 1,
+    1800.75, 'Formation en construction et architecture', 'Excellent', 'Récemment rénové', '0524789013',
+    'Fibre optique', 40, 8, 4, 25, 600000.00, 900000.00,
+    'Centre spécialisé avec laboratoires modernes'
+),
+(
+    'Centre de Formation en Tourisme Agadir', 'مركز التكوين في السياحة أكادير', 1, '2008-03-20', '0528901234',
+    4, 4, '56 Boulevard du 20 Août, Agadir', 4, 3,
+    1200.25, 'Formation en hôtellerie et tourisme', 'Bon état', 'Fonctionnel', '0528901235',
+    'ADSL', 35, 7, 6, 30, 400000.00, 600000.00,
+    'Partenariat avec des hôtels locaux pour stages pratiques'
+),
+(
+    'Institut des Technologies Avancées Rabat', 'معهد التكنولوجيات المتقدمة الرباط', 2, '2018-07-10', '0537345678',
+    5, 5, '90 Avenue Fal Ould Oumeir, Rabat', 5, 1,
+    2500.0, 'Formation en technologies de l''information', 'Neuf', 'Haute performance', '0537345679',
+    'Fibre optique haut débit', 100, 20, 10, 50, 1000000.00, 1500000.00,
+    'Centre d''excellence en IA et Big Data'
+);
+
+INSERT INTO region (id, region, region_ar) VALUES
+(1, 'Tanger-Tétouan-Al Hoceima', 'طنجة تطوان الحسيمة'),
+(2, 'Oriental', 'الجهة الشرقية'),
+(3, 'Fès-Meknès', 'فاس مكناس'),
+(4, 'Rabat-Salé-Kénitra', 'الرباط سلا القنيطرة'),
+(5, 'Beni Mellal-Khénifra', 'بني ملال خنيفرة'),
+(6, 'Casablanca-Settat', 'الدار البيضاء  سطات'),
+(7, 'Marrakech-Safi', 'مراكش آسفي'),
+(8, 'Darâa-Tafilalet', 'درعة تافيلالت'),
+(9, 'Souss-Massa', 'سوس ماسة'),
+(10, 'Guelmim-Oued Noun', 'كلميم واد نون'),
+(11, 'Laâyoune-Saguia El Hamra', 'العيون الساقية الحمراء'),
+(12, 'Dakhla-Oued-Eddahab', 'الداخلة وادي الذهب');
+
+INSERT INTO province (id, delegation, id_region_nv) VALUES
+(66, 'Agadir', 9),
+(18, 'Ain Chock', 6),
+(15, 'Ain Sbaa', 6),
+(61, 'AlHoceima', 1),
+(55, 'Azilal', 5),
+(13, 'Ben Msik', 6),
+(56, 'Béni Mellal', 5),
+(64, 'Benslimane', 6),
+(5, 'Boulmane', 3),
+(11, 'CasaAnfa', 6),
+(57, 'Chefchaouen', 1),
+(27, 'Chichaoua', 7),
+(42, 'Dakhla', 12),
+(31, 'ElHajeb', 3),
+(28, 'ElHaouz', 7),
+(3, 'ElJadida', 6),
+(67, 'El Kelaa des Sraghna', 7),
+(32, 'Errachidia', 8),
+(29, 'Essaouira', 7),
+(6, 'Fes', 3),
+(36, 'Figuig', 2),
+(20, 'Guelmim', 10),
+(33, 'Ifrane', 3),
+(9, 'Kénitra', 4),
+(44, 'Khémisset', 4),
+(34, 'Khénifra', 5),
+(1, 'Khouribga', 5),
+(26, 'Laayoune', 11),
+(58, 'Larache', 1),
+(30, 'Marrakech', 7),
+(35, 'Meknes', 3),
+(12, 'Mohammadia', 2),
+(37, 'Nador', 2),
+(51, 'Ouarzazate', 8),
+(38, 'Oujda', 2),
+(45, 'Rabat', 4),
+(4, 'Safi', 7),
+(46, 'Salé', 4),
+(2, 'Settat', 6),
+(10, 'Sidi Kacem', 4),
+(21, 'Tantan', 10),
+(69, 'Tanger', 1),
+(62, 'Taounate', 3),
+(53, 'Taroudant', 9),
+(22, 'Tata', 9),
+(63, 'Taza', 3),
+(48, 'Témara', 4),
+(60, 'Tétouan', 1),
+(54, 'Tiznit', 9),
+(23, 'Assa Zag', 10),
+(24, 'EsSmara', 11),
+(25, 'Boujdour', 11),
+(39, 'Jerrada', 2),
+(40, 'Taourirt', 2),
+(49, 'Inzegane Ait Melloul', 9),
+(50, 'Chtouka Ait baha', 9),
+(52, 'Zagora', 8),
+(59, 'El Fahs Anjra', 1),
+(7, 'Moulay Yacoub', 3),
+(68, 'Sefrou', 3),
+(72, 'Mdiq-Fnideq', 1),
+(41, 'Berkane', 2),
+(19, 'Sidi Bernoussi', 6),
+(70, 'Médiouna', 6),
+(14, 'My Rachid', 6),
+(71, 'Nouacer', 6),
+(73, 'Hay hassani', 6),
+(88, 'Mers Sultan', 6),
+(87, 'Guercif', 2),
+(43, 'Ousserd', 12),
+(86, 'Sidi Bennour', 6),
+(85, 'Erhamna', 7),
+(84, 'Sidi Slimane', 4),
+(74, 'Midelt', 8),
+(83, 'Fqih Ben Saleh', 5),
+(82, 'Tarfaya', 11),
+(81, 'Driouch', 2),
+(76, 'Tinghir', 8),
+(77, 'Youssoufia', 7),
+(78, 'Berrchid', 6),
+(79, 'Ouazzane', 1),
+(80, 'Sidi Ifni', 10);
+
+INSERT INTO personnel (nom_complet, grade, diplome, province_id, commune_id) VALUES
+('Mohammed Alami', 'Professeur', 'Doctorat en Informatique', 1, 1),
+('Fatima Zahra Bennis', 'Technicien', 'BTS en Électronique', 1, 2),
+('Ahmed Tazi', 'Ingénieur', 'Master en Génie Civil', 2, 40),
+('Laila Chraibi', 'Administrateur', 'Licence en Gestion', 4, 180),
+('Karim Idrissi', 'Formateur', 'Master en Pédagogie', 5, 222),
+('Nadia Berrada', 'Coordinateur', 'Master en Management de Projet', 6, 240),
+('Youssef El Amrani', 'Assistant', 'Licence en Ressources Humaines', 7, 250),
+('Samira Kadiri', 'Chercheur', 'Doctorat en Sciences de l''Environnement', 9, 260),
+('Hassan Mansouri', 'Directeur', 'MBA en Administration des Affaires', 9, 261),
+('Amina Bouazza', 'Conseiller', 'Master en Orientation Professionnelle', 10, 300);
+
+INSERT INTO centre (
+    nom_fr, nom_ar, type_centre_id, date_construction, telephone, 
+    province_id, commune_id, adresse, responsable_id, milieu_implantation_id, 
+    superficie, utilisation, etat, electricite, telephone_fixe, 
+    internet, nbr_pc, nbr_imprimante, nbr_personne_connaissance_info, 
+    nbr_personne_operationel_apres_formation, cout_estimation_amenagement, 
+    cout_estimation_equipement, observation
+) VALUES 
+(
+    'Centre de Formation Professionnelle Casablanca', 'مركز التكوين المهني الدار البيضاء', 1, '2010-05-15', '0522123456',
+    1, 1, '123 Rue Mohammed V, Casablanca', 1, 1,
+    1500.5, 'Formation en informatique et gestion', 'Bon état', 'Fonctionnel', '0522123457',
+    'Fibre optique', 50, 10, 5, 20, 500000.00, 750000.00,
+    'Centre moderne avec équipements récents'
+),
+(
+    'Institut Technique Agricole de Meknès', 'المعهد التقني الزراعي بمكناس', 2, '1995-09-01', '0535467890',
+    2, 2, '45 Avenue Hassan II, Meknès', 2, 2,
+    2000.0, 'Formation en agriculture et élevage', 'Nécessite rénovation', 'Stable', '0535467891',
+    'ADSL', 30, 5, 3, 15, 300000.00, 500000.00,
+    'Besoin de modernisation des équipements agricoles'
+),
+(
+    'École des Métiers du Bâtiment Marrakech', 'مدرسة مهن البناء مراكش', 3, '2015-11-30', '0524789012',
+    3, 3, '78 Rue Bab Agnaou, Marrakech', 3, 1,
+    1800.75, 'Formation en construction et architecture', 'Excellent', 'Récemment rénové', '0524789013',
+    'Fibre optique', 40, 8, 4, 25, 600000.00, 900000.00,
+    'Centre spécialisé avec laboratoires modernes'
+),
+(
+    'Centre de Formation en Tourisme Agadir', 'مركز التكوين في السياحة أكادير', 1, '2008-03-20', '0528901234',
+    4, 4, '56 Boulevard du 20 Août, Agadir', 4, 3,
+    1200.25, 'Formation en hôtellerie et tourisme', 'Bon état', 'Fonctionnel', '0528901235',
+    'ADSL', 35, 7, 6, 30, 400000.00, 600000.00,
+    'Partenariat avec des hôtels locaux pour stages pratiques'
+),
+(
+    'Institut des Technologies Avancées Rabat', 'معهد التكنولوجيات المتقدمة الرباط', 2, '2018-07-10', '0537345678',
+    5, 5, '90 Avenue Fal Ould Oumeir, Rabat', 5, 1,
+    2500.0, 'Formation en technologies de l''information', 'Neuf', 'Haute performance', '0537345679',
+    'Fibre optique haut débit', 100, 20, 10, 50, 1000000.00, 1500000.00,
+    'Centre d''excellence en IA et Big Data'
+);
+
+INSERT INTO beneficiaire (
+    nom, prenom, adresse, telephone, date_naissance, sexe, cin, commune_id
+) VALUES 
+(
+    'El Amrani', 'Fatima', '15 Rue des Orangers, Quartier Agdal', '0661234567', '1990-05-15', 'F', 'AB123456', 1
+),
+(
+    'Benhaddou', 'Ahmed', '27 Avenue Hassan II', '0677891011', '1985-11-22', 'M', 'CD789012', 2
+),
+(
+    'Tazi', 'Nadia', '8 Rue Moulay Rachid, Hay Riad', '0698765432', '1992-03-10', 'F', 'EF345678', 3
+),
+(
+    'Alaoui', 'Karim', '42 Boulevard Mohammed V', '0612345678', '1988-07-30', 'M', 'GH901234', 4
+),
+(
+    'Bennis', 'Samira', '3 Rue Ibn Sina, Quartier Maarif', '0634567890', '1995-01-05', 'F', 'IJ567890', 5
+),
+(
+    'Chraibi', 'Youssef', '55 Avenue des FAR', '0656789012', '1982-09-18', 'M', 'KL123456', 6
+),
+(
+    'Lahlou', 'Amina', '12 Rue Abou Bakr Seddik, Hay Mohammadi', '0678901234', '1993-12-25', 'F', 'MN789012', 7
+),
+(
+    'Benjelloun', 'Hassan', '31 Avenue Allal Ben Abdellah', '0690123456', '1987-06-08', 'M', 'OP345678', 8
+),
+(
+    'Ziani', 'Leila', '9 Rue Al Madina, Quartier Californie', '0623456789', '1991-04-20', 'F', 'QR901234', 9
+),
+(
+    'Ouazzani', 'Mehdi', '18 Boulevard Zerktouni', '0645678901', '1986-08-12', 'M', 'ST567890', 10
+);
+
+insert into type_activite (name) values ('CEF'),('CFA');
+
+insert into milieu_implantation(nom) values ('Urbain'),('Rural')
+
+
+
+insert into type_centre values(4,'centre simple'),(5,"Partie d'une local"),(6,'Complexe'),(7,"Centre Multidisciplinaire");
+
+insert into type_centre values(1,'EPS'),(2,'DAM'),(3,'CPROX')

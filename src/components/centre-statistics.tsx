@@ -1,12 +1,17 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Overview } from "./components-overview"
-import { RecentActivities } from "./components-recent-activities"
-
+import * as React from "react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Overview } from "./components-overview";
+import { RecentActivities } from "./components-recent-activities";
 
 // Mock data - replace with actual data fetching in a real application
 const centreData = {
@@ -36,13 +41,15 @@ const centreData = {
     { name: "Gestion", students: 70 },
     { name: "Langues", students: 80 },
   ],
-}
+};
 
 export function CentreStatistics() {
   return (
     <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Statistiques du Centre</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Statistiques du Centre
+        </h2>
       </div>
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
@@ -71,9 +78,10 @@ export function CentreStatistics() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{centreData.totalStudents}</div>
-                <p className="text-xs text-muted-foreground">
-                </p>
+                <div className="text-2xl font-bold">
+                  {centreData.totalStudents}
+                </div>
+                <p className="text-xs text-muted-foreground"></p>
               </CardContent>
             </Card>
             <Card>
@@ -97,13 +105,16 @@ export function CentreStatistics() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{centreData.totalStaff}</div>
-
+                <div className="text-2xl font-bold">
+                  {centreData.totalStaff}
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Taux d'occupation</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Taux d'occupation
+                </CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -119,12 +130,16 @@ export function CentreStatistics() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{centreData.occupancyRate}%</div>
+                <div className="text-2xl font-bold">
+                  {centreData.occupancyRate}%
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Taux de réussite</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Taux de réussite
+                </CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -139,7 +154,9 @@ export function CentreStatistics() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{centreData.successRate}%</div>
+                <div className="text-2xl font-bold">
+                  {centreData.successRate}%
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -155,9 +172,7 @@ export function CentreStatistics() {
             <Card className="col-span-3">
               <CardHeader>
                 <CardTitle>Distribution des cours</CardTitle>
-                <CardDescription>
-                  Nombre d'étudiants par cours
-                </CardDescription>
+                <CardDescription>Nombre d'étudiants par cours</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={350}>
@@ -176,7 +191,11 @@ export function CentreStatistics() {
                       axisLine={false}
                       tickFormatter={(value) => `${value}`}
                     />
-                    <Bar dataKey="students" fill="#adfa1d" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="students"
+                      fill="#adfa1d"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -186,8 +205,7 @@ export function CentreStatistics() {
             <Card className="col-span-4">
               <CardHeader>
                 <CardTitle>Activités récentes</CardTitle>
-                <CardDescription>
-                </CardDescription>
+                <CardDescription></CardDescription>
               </CardHeader>
               <CardContent>
                 <RecentActivities />
@@ -197,5 +215,5 @@ export function CentreStatistics() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
