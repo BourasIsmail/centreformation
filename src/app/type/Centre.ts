@@ -1,0 +1,32 @@
+import { Commune } from "./commune";
+import { MilieuImplantation } from "./MilieuImplantation";
+import { Personnel } from "./Personnel";
+import { Province } from "./Province";
+import { TypeCentre } from "./TypeCentre";
+
+export type Centre = {
+  id?: number;
+  nomFr?: string;
+  nomAr?: string;
+  typeCentre?: TypeCentre;
+  dateConstruction?: string;
+  telephone?: string;
+  province?: Province;
+  commune?: Commune;
+  adresse?: string;
+  responsable?: Personnel;
+  milieuImplantation?: MilieuImplantation;
+  superficie?: number;
+  utilisation?: string;
+  etat?: string;
+  electricite?: string;
+  telephoneFixe?: string;
+  internet?: string;
+  nbrPC?: number;
+  nbrImprimante?: number;
+  nbrPersonneConnaissanceInfo?: number;
+  nbrPersonneOperationelApresFormation?: number;
+  coutEstimationAmenagement?: number;
+  coutEstimationEquipement?: number;
+  observation?: string;
+};

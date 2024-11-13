@@ -10,9 +10,6 @@ import {
   DoubleArrowRightIcon,
   DotsHorizontalIcon,
   MagnifyingGlassIcon,
-  CircleIcon,
-  StopwatchIcon,
-  CheckCircledIcon,
 } from "@radix-ui/react-icons";
 import {
   ColumnDef,
@@ -55,80 +52,23 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-export type Centre = {
-  id: number;
-  nomFr: string;
-  typeCentre: { id: number; nom: string };
-  commune: { id: number; nom: string };
-  adresse: string;
-  etat: string;
-};
-
-const data: Centre[] = [
-  {
-    id: 1,
-    nomFr: "Centre de Formation Professionnelle",
-    typeCentre: { id: 1, nom: "CFA" },
-    commune: { id: 1, nom: "Casablanca" },
-    adresse: "123 Rue de la Formation, Casablanca",
-    etat: "Bon",
-  },
-  {
-    id: 2,
-    nomFr: "Centre d'Apprentissage",
-    typeCentre: { id: 2, nom: "CEF" },
-    commune: { id: 2, nom: "Rabat" },
-    adresse: "45 Avenue de l'Education, Rabat",
-    etat: "Mauvais",
-  },
-  {
-    id: 3,
-    nomFr: "Institut Technique Spécialisé",
-    typeCentre: { id: 1, nom: "CEF" },
-    commune: { id: 3, nom: "Marrakech" },
-    adresse: "78 Boulevard Hassan II, Marrakech",
-    etat: "Mauvais",
-  },
-  {
-    id: 4,
-    nomFr: "Centre de Qualification Professionnelle",
-    typeCentre: { id: 3, nom: "CFA" },
-    commune: { id: 4, nom: "Tanger" },
-    adresse: "15 Rue Ibn Batouta, Tanger",
-    etat: "Bon",
-  },
-  {
-    id: 5,
-    nomFr: "École des Métiers",
-    typeCentre: { id: 2, nom: "CFA" },
-    commune: { id: 5, nom: "Fès" },
-    adresse: "230 Avenue des FAR, Fès",
-    etat: "Moyen",
-  },
-];
+import { useQuery } from "react-query";
+import { getCentres } from "@/app/api/centre";
+import { Centre } from "@/app/type/Centre";
 
 const statuses = [
   {
-    value: "Bon",
-    label: "Bon",
-    icon: CircleIcon,
+    value: "Bon état",
+    label: "Bon état",
+    color: "bg-green-200 text-green-800",
   },
   {
-    value: "Moyen",
-    label: "Moyen",
-    icon: StopwatchIcon,
+    value: "Nécessite rénovation",
+    label: "Nécessite rénovation",
+    color: "bg-yellow-200 text-yellow-800",
   },
-  {
-    value: "Mauvais",
-    label: "Mauvais",
-    icon: CheckCircledIcon,
-  },
-];
-
-const typeCentres = [
-  { id: 1, nom: "CFA" },
-  { id: 2, nom: "CEF" },
+  { value: "Neuf", label: "Neuf", color: "bg-blue-200 text-blue-800" },
+  { value: "Excellent", label: "Excellent", color: "bg-green-500 text-white" },
 ];
 
 export const columns: ColumnDef<Centre>[] = [
@@ -170,12 +110,10 @@ export const columns: ColumnDef<Centre>[] = [
     accessorKey: "typeCentre",
     header: "Type de Centre",
     cell: ({ row }) => {
-      const typeCentre = row.getValue("typeCentre") as
-        | { nom: string }
-        | undefined;
+      const typeCentre = row.original.typeCentre;
       return (
         <Badge variant="outline" className="font-normal">
-          {typeCentre?.nom || "N/A"}
+          {typeCentre?.name || "N/A"}
         </Badge>
       );
     },
@@ -184,8 +122,8 @@ export const columns: ColumnDef<Centre>[] = [
     accessorKey: "commune",
     header: "Commune",
     cell: ({ row }) => {
-      const commune = row.getValue("commune") as { nom: string } | undefined;
-      return commune?.nom || "N/A";
+      const commune = row.original.commune;
+      return commune?.name || "N/A";
     },
   },
   {
@@ -198,17 +136,12 @@ export const columns: ColumnDef<Centre>[] = [
     header: "État",
     cell: ({ row }) => {
       const etat = row.getValue("etat") as string;
+      const status = statuses.find((s) => s.value === etat);
       return (
         <Badge
-          variant={
-            etat === "Bon"
-              ? "secondary"
-              : etat === "Moyen"
-              ? "default"
-              : etat === "Mauvais"
-              ? "outline"
-              : "destructive"
-          }
+          className={`font-normal ${
+            status?.color || "bg-gray-200 text-gray-800"
+          }`}
         >
           {etat}
         </Badge>
@@ -254,8 +187,17 @@ export function CentreTableComponent() {
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
   const [typeCentreFilter, setTypeCentreFilter] = React.useState<string[]>([]);
 
+  const {
+    data: centres,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: "centres",
+    queryFn: getCentres,
+  });
+
   const table = useReactTable({
-    data,
+    data: centres || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -273,23 +215,33 @@ export function CentreTableComponent() {
     },
   });
 
-  // Apply the status filter
   React.useEffect(() => {
     table
       .getColumn("etat")
       ?.setFilterValue(statusFilter.length ? statusFilter : undefined);
   }, [statusFilter, table]);
 
-  // Apply the type centre filter
   React.useEffect(() => {
     table
       .getColumn("typeCentre")
       ?.setFilterValue(
         typeCentreFilter.length
-          ? (value: { nom: string }) => typeCentreFilter.includes(value?.nom)
+          ? (value: string) => typeCentreFilter.includes(value)
           : undefined
       );
   }, [typeCentreFilter, table]);
+
+  if (isLoading) {
+    return <div>Chargement des données...</div>;
+  }
+
+  if (error) {
+    return <div>Une erreur s'est produite lors du chargement des données.</div>;
+  }
+
+  const typeCentres = Array.from(
+    new Set(centres?.map((centre) => centre.typeCentre?.name).filter(Boolean))
+  ).map((name, index) => ({ id: index + 1, name: name as string }));
 
   return (
     <Card>
@@ -334,9 +286,9 @@ export function CentreTableComponent() {
                       const searchValue = event.target.value.toLowerCase();
                       const filteredTypes = typeCentres
                         .filter((type) =>
-                          type.nom.toLowerCase().includes(searchValue)
+                          type.name.toLowerCase().includes(searchValue)
                         )
-                        .map((type) => type.nom);
+                        .map((type) => type.name);
                       setTypeCentreFilter(filteredTypes);
                     }}
                   />
@@ -350,22 +302,23 @@ export function CentreTableComponent() {
                     className="flex items-center space-x-2 py-1.5"
                   >
                     <Checkbox
-                      checked={typeCentreFilter.includes(type.nom)}
+                      checked={typeCentreFilter.includes(type.name)}
                       onCheckedChange={(checked) => {
                         setTypeCentreFilter((prev) =>
                           checked
-                            ? [...prev, type.nom]
-                            : prev.filter((t) => t !== type.nom)
+                            ? [...prev, type.name]
+                            : prev.filter((t) => t !== type.name)
                         );
                       }}
                     />
                     <div className="flex flex-1 items-center space-x-2">
-                      <span className="text-sm">{type.nom}</span>
+                      <span className="text-sm">{type.name}</span>
                     </div>
                     <span className="text-xs text-muted-foreground tabular-nums">
                       {
-                        data.filter((item) => item.typeCentre.nom === type.nom)
-                          .length
+                        centres?.filter(
+                          (item) => item.typeCentre?.name === type.name
+                        ).length
                       }
                     </span>
                   </div>
@@ -429,11 +382,13 @@ export function CentreTableComponent() {
                       }}
                     />
                     <div className="flex flex-1 items-center space-x-2">
-                      <status.icon className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{status.label}</span>
                     </div>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {data.filter((item) => item.etat === status.value).length}
+                      {
+                        centres?.filter((item) => item.etat === status.value)
+                          .length
+                      }
                     </span>
                   </div>
                 ))}
@@ -474,9 +429,9 @@ export function CentreTableComponent() {
                     >
                       {column.id === "nomFr"
                         ? "Nom"
-                        : column.id === "typeCentre"
+                        : column.id === "typeCentre.name"
                         ? "Type de Centre"
-                        : column.id === "commune"
+                        : column.id === "commune.name"
                         ? "Commune"
                         : column.id === "adresse"
                         ? "Adresse"

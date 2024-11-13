@@ -6,15 +6,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { api } from "@/app/api";
+import { setCookie } from "cookies-next";
+import { useToast } from "@/hooks/use-toast";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your login logic here
+    try {
+      const response = await api.post("/auth/login", { email, password });
+      console.log(response.data);
+      setCookie("token", response.data, {
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+      });
+      window.location.href = "/";
+      toast({
+        description: "Connexion réussie",
+        className: "bg-green-500 text-white",
+        duration: 2000,
+        title: "Succès",
+      });
+    } catch (e) {
+      toast({
+        description: "Email ou mot de passe incorrect",
+        variant: "destructive",
+        duration: 3000,
+        title: "Erreur",
+      });
+    }
     console.log("Login attempt with:", { email, password });
   };
 
@@ -98,7 +123,7 @@ export function LoginPage() {
           className="w-full max-w-2xl"
           height={600}
           width={600}
-          src="/placeholder.svg"
+          src="/entraide.png"
           priority
         />
       </div>
