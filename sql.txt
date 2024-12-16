@@ -239,3 +239,5 @@ insert into milieu_implantation(nom) values ('Urbain'),('Rural')
 insert into type_centre values(4,'centre simple'),(5,"Partie d'une local"),(6,'Complexe'),(7,"Centre Multidisciplinaire");
 
 insert into type_centre values(1,'EPS'),(2,'DAM'),(3,'CPROX')
+
+
