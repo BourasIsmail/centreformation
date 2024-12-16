@@ -1,4 +1,5 @@
-import { Commune } from "./commune";
+import { Commune } from "./Commune";
+import { Province } from "./Province";
 
 export type Beneficiaire = {
   id?: number;
@@ -9,4 +10,5 @@ export type Beneficiaire = {
   sexe?: string;
   cin?: string;
   commune?: Commune;
+  province?: Province;
 };

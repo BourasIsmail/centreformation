@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   BookOpen,
   Users,
@@ -43,7 +44,6 @@ const data = {
       title: "Centres",
       url: "#",
       icon: Building2,
-      isActive: true,
       items: [
         {
           title: "Listes des centres",
@@ -66,15 +66,15 @@ const data = {
       items: [
         {
           title: "Listes des beneficiaires",
-          url: "#",
+          url: "/beneficiaire",
         },
         {
           title: "Ajouter un beneficiaire",
-          url: "#",
+          url: "/beneficiaire/ajouter",
         },
         {
           title: "Statistiques",
-          url: "#",
+          url: "/beneficiaire/statistiques",
         },
       ],
     },
@@ -85,15 +85,15 @@ const data = {
       items: [
         {
           title: "Listes des activités",
-          url: "#",
+          url: "/activites",
         },
         {
           title: "Ajouter une activité",
-          url: "#",
+          url: "/activites/ajouter",
         },
         {
           title: "Statistiques",
-          url: "#",
+          url: "/activites/statistiques",
         },
       ],
     },
@@ -104,15 +104,15 @@ const data = {
       items: [
         {
           title: "Listes des personnels",
-          url: "#",
+          url: "/personnels",
         },
         {
           title: "Ajouter un personnel",
-          url: "#",
+          url: "/personnels/ajouter",
         },
         {
           title: "Statistiques",
-          url: "#",
+          url: "/personnels/statistiques",
         },
       ],
     },
@@ -121,22 +121,31 @@ const data = {
     {
       name: "Filières",
       icon: GraduationCap,
-      url: "#",
+      url: "/filieres",
     },
     {
       name: "Ajouter un rapport de suivi de formation",
       icon: Clipboard,
-      url: "#",
+      url: "/rapports/ajouter",
     },
     {
       name: "localisation des centres",
-      url: "#",
+      url: "/centres/localisation",
       icon: Map,
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
+  const navMainWithActiveState = React.useMemo(() => {
+    return data.navMain.map((item) => ({
+      ...item,
+      isActive: item.items.some((subItem) => pathname.startsWith(subItem.url)),
+    }));
+  }, [pathname]);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -156,7 +165,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMainWithActiveState} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>

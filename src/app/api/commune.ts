@@ -1,5 +1,5 @@
 import { getCookie } from "cookies-next";
-import { Commune } from "../type/commune";
+import { Commune } from "../type/Commune";
 import { api } from ".";
 
 export async function getCommunes(): Promise<Commune[]> {

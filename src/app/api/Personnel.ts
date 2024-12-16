@@ -33,3 +33,17 @@ export async function getPersonnelByCommune(
     throw error;
   }
 }
+
+export async function getPersonnels(): Promise<Personnel[]> {
+  try {
+    const token = getCookie("token");
+    const response = await api.get(`/personnel/all`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

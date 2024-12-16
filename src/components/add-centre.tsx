@@ -37,6 +37,7 @@ import { getPersonnelByProvince } from "@/app/api/Personnel";
 import { getMilieuImplantation } from "@/app/api/MilieuImplantation";
 import { useQuery } from "react-query";
 import { getTypeCentre } from "@/app/api/TypeCentre";
+import { getProprieteDuCentres } from "@/app/api/ProprieteDuCentre";
 
 const formSchema = z.object({
   nomFr: z.string().min(2, {
@@ -70,6 +71,11 @@ const formSchema = z.object({
     .object({ id: z.number() })
     .refine((value) => value.id > 0, {
       message: "Veuillez sélectionner un milieu d'implantation.",
+    }),
+  proprieteDuCentre: z
+    .object({ id: z.number() })
+    .refine((value) => value.id > 0, {
+      message: "Veuillez sélectionner un proprietaire.",
     }),
   superficie: z
     .number()
@@ -127,6 +133,7 @@ export function AddCentre() {
       adresse: "",
       responsable: { id: 0 },
       milieuImplantation: { id: 0 },
+      proprieteDuCentre: { id: 0 },
       superficie: 0,
       utilisation: "",
       etat: "",
@@ -148,7 +155,10 @@ export function AddCentre() {
     queryFn: getAllProvinces,
   });
 
-  console.log(province);
+  const { data: proprietaire } = useQuery({
+    queryKey: "proprietaire",
+    queryFn: getProprieteDuCentres,
+  });
 
   const { data: commune } = useQuery({
     queryKey: ["commune", form.watch("province.id")],
@@ -191,209 +201,210 @@ export function AddCentre() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="nomFr"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nom (Français)</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="nomFr"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom (Français)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nom du centre en français"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nomAr"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom (Arabe)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nom du centre en arabe"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="typeCentre"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type de centre</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange({ id: parseInt(value, 10) })
+                        }
+                        value={field.value.id.toString()}
+                      >
                         <FormControl>
-                          <Input
-                            placeholder="Nom du centre en français"
-                            {...field}
-                          />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez un type de centre" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dateConstruction"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date de construction</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="province"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Province</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange({ id: parseInt(value, 10) })
-                          }
-                          value={field.value.id.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez une province" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {province?.map((p) => (
-                              <SelectItem key={p.id} value={p.id.toString()}>
-                                {p.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="nomAr"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nom (Arabe)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Nom du centre en arabe"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="telephone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Téléphone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Numéro de téléphone" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="commune"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Commune</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange({ id: parseInt(value, 10) })
-                          }
-                          value={field.value.id.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez une commune" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {commune?.map((c) => (
-                              <SelectItem
-                                key={c.id}
-                                value={c?.id?.toString() || ""}
-                              >
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="typeCentre"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Type de centre</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange({ id: parseInt(value, 10) })
-                          }
-                          value={field.value.id.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez un type de centre" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {typeCentre?.map((type) => (
-                              <SelectItem
-                                key={type.id}
-                                value={type?.id?.toString() || ""}
-                              >
-                                {type.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="adresse"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Adresse</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Adresse complète" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="responsable"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Responsable</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange({ id: parseInt(value, 10) })
-                          }
-                          value={field.value.id.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez un responsable" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {personnel?.map((p) => (
-                              <SelectItem
-                                key={p.id}
-                                value={p?.id?.toString() || ""}
-                              >
-                                {p.nomComplet}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          {typeCentre?.map((type) => (
+                            <SelectItem
+                              key={type.id}
+                              value={type?.id?.toString() || ""}
+                            >
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="dateConstruction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de construction</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="telephone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Numéro de téléphone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="adresse"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Adresse</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Adresse complète" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Province</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange({ id: parseInt(value, 10) })
+                        }
+                        value={field.value.id.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez une province" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {province?.map((p) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="commune"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Commune</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange({ id: parseInt(value, 10) })
+                        }
+                        value={field.value.id.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez une commune" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {commune?.map((c) => (
+                            <SelectItem
+                              key={c.id}
+                              value={c?.id?.toString() || ""}
+                            >
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="responsable"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Responsable</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange({ id: parseInt(value, 10) })
+                        }
+                        value={field.value.id.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez un responsable" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {personnel?.map((p) => (
+                            <SelectItem
+                              key={p.id}
+                              value={p?.id?.toString() || ""}
+                            >
+                              {p.nomComplet}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
@@ -402,8 +413,10 @@ export function AddCentre() {
                     <FormItem>
                       <FormLabel>Milieu d'implantation</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value.id.toString()}
+                        onValueChange={(value) =>
+                          field.onChange({ id: parseInt(value, 10) })
+                        }
+                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -417,6 +430,38 @@ export function AddCentre() {
                               value={milieu?.id?.toString() || ""}
                             >
                               {milieu.nom}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="proprieteDuCentre"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Propriété du centre</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange({ id: parseInt(value, 10) })
+                        }
+                        value={field.value.id.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez un proprietaire" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {proprietaire?.map((p) => (
+                            <SelectItem
+                              key={p.id}
+                              value={p?.id?.toString() || ""}
+                            >
+                              {p.nom}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -444,6 +489,9 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="utilisation"
@@ -457,8 +505,6 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="etat"
@@ -485,6 +531,9 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="telephoneFixe"
@@ -501,8 +550,6 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="internet"
@@ -538,6 +585,9 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="nbrImprimante"
@@ -557,8 +607,6 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="nbrPersonneConnaissanceInfo"
@@ -601,6 +649,9 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="coutEstimationAmenagement"
@@ -620,8 +671,6 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="coutEstimationEquipement"
@@ -642,6 +691,7 @@ export function AddCentre() {
                   )}
                 />
               </div>
+
               <FormField
                 control={form.control}
                 name="observation"

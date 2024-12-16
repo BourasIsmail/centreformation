@@ -1,6 +1,7 @@
-import { Commune } from "./commune";
+import { Commune } from "./Commune";
 import { MilieuImplantation } from "./MilieuImplantation";
 import { Personnel } from "./Personnel";
+import { ProprieteDuCentre } from "./ProprieteDuCentre";
 import { Province } from "./Province";
 import { TypeCentre } from "./TypeCentre";
 
@@ -16,6 +17,7 @@ export type Centre = {
   adresse?: string;
   responsable?: Personnel;
   milieuImplantation?: MilieuImplantation;
+  proprieteDuCentre?: ProprieteDuCentre;
   superficie?: number;
   utilisation?: string;
   etat?: string;
