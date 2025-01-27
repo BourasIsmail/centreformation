@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "react-query";
 import { getAllProvinces } from "@/app/api/province";
 import { getCommuneByProvince } from "@/app/api/commune";
+import { api } from "@/app/api";
 
 const formSchema = z.object({
   nom: z.string().min(2, {
@@ -80,32 +81,25 @@ export function AddBeneficiaireFormComponent() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await fetch("/api/beneficiaires", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
+      const response = api.post(`/beneficiaire/add`, values).then((res) => {
+        console.log(response);
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'ajout du bénéficiaire");
-      }
-
-      const newBeneficiaire: Beneficiaire = await response.json();
 
       toast({
-        title: "Bénéficiaire ajouté",
-        description: `${newBeneficiaire.prenom} ${newBeneficiaire.nom} a été ajouté avec succès.`,
+        description: "Le bénéficiaire a été ajouté avec succès.",
+        className: "bg-green-500 text-white",
+        duration: 3000,
+        title: "Succès",
       });
-
+      console.log("Bénéficiaire ajouté avec succès:", values);
       router.push("/beneficiaires");
     } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'ajout du bénéficiaire.",
-        variant: "destructive",
+        duration: 3000,
+        className: "bg-red-500 text-white",
       });
     }
   }

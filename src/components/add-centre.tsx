@@ -38,6 +38,7 @@ import { getMilieuImplantation } from "@/app/api/MilieuImplantation";
 import { useQuery } from "react-query";
 import { getTypeCentre } from "@/app/api/TypeCentre";
 import { getProprieteDuCentres } from "@/app/api/ProprieteDuCentre";
+import { api } from "@/app/api";
 
 const formSchema = z.object({
   nomFr: z.string().min(2, {
@@ -182,9 +183,28 @@ export function AddCentre() {
     queryFn: getTypeCentre,
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // Add your submission logic here
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = api.post(`/centre/addUser`, values).then((res) => {
+        console.log(response);
+      });
+
+      toast({
+        description: "Le bénéficiaire a été ajouté avec succès.",
+        className: "bg-green-500 text-white",
+        duration: 3000,
+        title: "Succès",
+      });
+      console.log("Bénéficiaire ajouté avec succès:", values);
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout du bénéficiaire.",
+        duration: 3000,
+        className: "bg-red-500 text-white",
+      });
+    }
   }
 
   return (

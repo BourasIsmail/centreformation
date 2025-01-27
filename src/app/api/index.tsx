@@ -1,30 +1,30 @@
-import axios from "axios";
-import { setCookie, getCookie, deleteCookie } from "cookies-next";
+import axios, { AxiosError } from "axios";
+import { getCookie, deleteCookie } from "cookies-next";
 import { UserInfo } from "../type/UserInfo";
 
-const client = axios.create({
-  baseURL: "http://localhost:8080",
-  //baseURL: "https://loyer.entraide.ma/api",
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-client.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response.status === 401) {
-      console.log("error 401");
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      console.error("Unauthorized access");
     }
-    if (error.response.status === 403) {
-      console.log("error 403");
-      deleteCookie("token");
+    if (error.response?.status === 403) {
+      console.error("Forbidden access");
+      //deleteCookie("token");
       window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
-client.interceptors.request.use(
+
+api.interceptors.request.use(
   (config) => {
     const token = getCookie("token");
     if (token) {
@@ -32,71 +32,49 @@ client.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
-export const api = client;
 
-export function getStagiaires() {
-  return async () => {
-    // TODO checks and params to all custom hooks
+export { api };
 
-    const token = getCookie("token");
-    console.log(token);
-    const { data } = await api.get("/stagiaire/all", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return data;
-  };
+export async function getUsers(): Promise<UserInfo[]> {
+  const { data } = await api.get<UserInfo[]>("/auth/getUsers");
+  return data;
 }
 
-export function getUsers() {
-  return async () => {
-    const token = getCookie("token");
-    const { data } = await api.get("/auth/getUsers", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return data;
-  };
-}
-const tokenPayload = async () => {
-  const token = await getCookie("token");
-  if (!token) return null;
-  const payload = token?.split(".")[1];
-  const decodedPayload = await atob(payload);
-  const tokenPay = JSON.parse(decodedPayload);
-  return tokenPay?.sub;
-};
-export function getCurrentUser() {
-  return async () => {
-    const email = await tokenPayload();
-    if (!email) return null;
-    const token = getCookie("token");
-    const { data } = await api.get("/auth/email/" + email, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return data;
-  };
-}
-
-export const logout = async () => {
-  deleteCookie("token"); // Delete token cookie
-  // Additional logic for clearing user data, redirecting, etc.
-  window.location.href = "/login";
-};
-
-export async function getUser(id: number) {
+async function tokenPayload(): Promise<string | null> {
+  const token = getCookie("token");
+  if (!token || typeof token !== "string") return null;
   try {
-    const response = await api.get(`/auth/getUser/${id}`);
-    return response.data as UserInfo;
+    const [, payload] = token.split(".");
+    const decodedPayload = atob(payload);
+    const { sub } = JSON.parse(decodedPayload);
+    return sub;
   } catch (error) {
-    console.log(error);
+    console.error("Error decoding token:", error);
+    return null;
+  }
+}
+
+export async function getCurrentUser(): Promise<UserInfo | null> {
+  const email = await tokenPayload();
+  if (!email) return null;
+  const { data } = await api.get<UserInfo>(`/auth/email/${email}`);
+  return data;
+}
+
+export async function logout(): Promise<void> {
+  deleteCookie("token");
+  if (typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+}
+
+export async function getUser(id: number): Promise<UserInfo | undefined> {
+  try {
+    const { data } = await api.get<UserInfo>(`/auth/getUser/${id}`);
+    return data;
+  } catch (error) {
+    console.error("Error fetching user:", error);
   }
 }
