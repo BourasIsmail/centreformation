@@ -5,6 +5,7 @@ import { TypeActivite } from "./TypeActivite";
 
 export type Activite = {
   id?: number;
+  nom?: string;
   typeActivite?: TypeActivite;
   dateOuverture?: string;
   responsableActivite?: Personnel;
@@ -14,5 +15,5 @@ export type Activite = {
   partenariat?: string;
   dateSignatureConvention?: string;
   centre?: ProprieteDuCentre;
-  filieres?: Filiere[];
+  filiere?: Filiere;
 };

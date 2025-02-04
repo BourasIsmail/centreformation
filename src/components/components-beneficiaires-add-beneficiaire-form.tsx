@@ -91,8 +91,8 @@ export function AddBeneficiaireFormComponent() {
         duration: 3000,
         title: "Succès",
       });
-      console.log("Bénéficiaire ajouté avec succès:", values);
-      router.push("/beneficiaires");
+      
+      router.push("/beneficiaire");
     } catch (error) {
       console.error("Erreur:", error);
       toast({
@@ -260,7 +260,7 @@ export function AddBeneficiaireFormComponent() {
                       </FormControl>
                       <SelectContent>
                         {province?.map((p) => (
-                          <SelectItem key={p.id} value={p.id.toString()}>
+                          <SelectItem key={p?.id} value={p?.id?.toString() || ""}>
                             {p.name}
                           </SelectItem>
                         ))}

@@ -31,6 +31,7 @@ import { Personnel } from "@/app/type/Personnel";
 import { getAllProvinces } from "@/app/api/province";
 import { getCommuneByProvince } from "@/app/api/commune";
 import { Commune } from "@/app/type/Commune";
+import { api } from "@/app/api";
 
 const formSchema = z.object({
   nomComplet: z.string().min(2, {
@@ -70,13 +71,18 @@ export function AddPersonnel() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // TODO: Implement API call to add personnel
+      const response = api.post(`/personnel`, values).then((res) => {
+        console.log(response);
+      });
       console.log(values);
       toast({
-        title: "Personnel ajouté",
+        title: "Succès",
         description: `${values.nomComplet} a été ajouté avec succès.`,
+        className: "bg-green-500 text-white",
+        duration: 3000
+        
       });
-      router.push("/personnel");
+      router.push("/personnels");
     } catch (error) {
       console.error("Erreur:", error);
       toast({
@@ -188,7 +194,7 @@ export function AddPersonnel() {
                         {provinces?.map((province) => (
                           <SelectItem
                             key={province.id}
-                            value={province.id.toString()}
+                            value={province?.id?.toString() || ""}
                           >
                             {province.name}
                           </SelectItem>

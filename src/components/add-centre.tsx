@@ -151,7 +151,7 @@ export function AddCentre() {
     },
   });
 
-  const { data: province } = useQuery({
+  const { data: provinces } = useQuery({
     queryKey: "provinces",
     queryFn: getAllProvinces,
   });
@@ -185,22 +185,23 @@ export function AddCentre() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = api.post(`/centre/addUser`, values).then((res) => {
+      const response = api.post(`/centre/add`, values).then((res) => {
         console.log(response);
       });
 
       toast({
-        description: "Le bénéficiaire a été ajouté avec succès.",
+        description: "Le centre a été ajouté avec succès.",
         className: "bg-green-500 text-white",
         duration: 3000,
         title: "Succès",
       });
-      console.log("Bénéficiaire ajouté avec succès:", values);
+      router.push("/centres");
+      
     } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'ajout du bénéficiaire.",
+        description: "Une erreur est survenue lors de l'ajout du centre.",
         duration: 3000,
         className: "bg-red-500 text-white",
       });
@@ -348,8 +349,8 @@ export function AddCentre() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {province?.map((p) => (
-                            <SelectItem key={p.id} value={p.id.toString()}>
+                          {provinces?.map((p) => (
+                            <SelectItem key={p.id} value={p?.id?.toString() ?? ""}>
                               {p.name}
                             </SelectItem>
                           ))}

@@ -55,7 +55,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "react-query";
 import { getBenefs } from "@/app/api/Beneficiaire";
 import { Beneficiaire } from "@/app/type/Beneficiaire";
-import { Commune } from "@/app/type/commune";
+import { Commune } from "@/app/type/Commune";
+import Link from "next/link";
+
 
 const sexes = [
   { value: "M", label: "Masculin", color: "bg-blue-200 text-blue-800" },
@@ -167,8 +169,14 @@ export const columns: ColumnDef<Beneficiaire>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Voir les détails</DropdownMenuItem>
+            <Link 
+            href={beneficiaire.id ? `/suivie/${beneficiaire.id}`: `#`}>
+            <DropdownMenuItem>historique</DropdownMenuItem>
+            </Link>
+            <Link
+            href={beneficiaire.id ? `/updateUser/${beneficiaire.id}`: `#`}>
             <DropdownMenuItem>Modifier</DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
               Supprimer

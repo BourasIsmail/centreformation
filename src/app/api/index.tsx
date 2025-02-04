@@ -64,7 +64,7 @@ export async function getCurrentUser(): Promise<UserInfo | null> {
 }
 
 export async function logout(): Promise<void> {
-  deleteCookie("token");
+  deleteCookie("token", { path: "/" });
   if (typeof window !== "undefined") {
     window.location.href = "/login";
   }

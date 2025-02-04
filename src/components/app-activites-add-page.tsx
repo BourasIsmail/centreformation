@@ -40,12 +40,16 @@ import { TypeActivite } from "@/app/type/TypeActivite";
 import { getFilieresByTypeActivite } from "@/app/api/Filiere";
 import { Filiere } from "@/app/type/Filiere";
 import { MultiSelect } from "./components-ui-multi-select";
+import { api } from "@/app/api";
 
 const formSchema = z.object({
+  nom: z.string().min(2, {
+    message: "Le nom d'activité doit contenir au moins 2 caractères.",
+  }),
   typeActivite: z.object({
     id: z.number(),
-    nom: z.string(),
   }),
+  
   dateOuverture: z.string().min(1, { message: "Date d'ouverture est requise" }),
   responsableActivite: z.object({
     id: z.number(),
@@ -61,14 +65,12 @@ const formSchema = z.object({
   dateSignatureConvention: z.string().optional(),
   centre: z.object({
     id: z.number(),
+  }),
+  filiere: z.object({
+    id: z.number(),
     nom: z.string(),
   }),
-  filieres: z.array(
-    z.object({
-      id: z.number(),
-      nom: z.string(),
-    })
-  ),
+  
 });
 
 export default function AddActivitePage() {
@@ -80,7 +82,8 @@ export default function AddActivitePage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      typeActivite: { id: 0, nom: "" },
+      typeActivite: { id: 0},
+      nom: "",
       dateOuverture: "",
       responsableActivite: { id: 0, nomComplet: "" },
       capaciteAccueil: 0,
@@ -88,8 +91,8 @@ export default function AddActivitePage() {
       gestion: { id: 0, nom: "" },
       partenariat: "",
       dateSignatureConvention: "",
-      centre: { id: 0, nom: "" },
-      filieres: [],
+      centre: { id: 0},
+      filiere: { id: 0, nom: "" },
     },
   });
 
@@ -103,21 +106,38 @@ export default function AddActivitePage() {
     getProprieteDuCentres
   );
   const { data: centres } = useQuery("centres", getCentres);
-  const { data: filieres, refetch: refetchFilieres } = useQuery<Filiere[]>(
+  const { data: filieres, refetch: refetchFilieres } = useQuery(
     ["filieres", selectedTypeActivite?.id],
     () => getFilieresByTypeActivite(selectedTypeActivite?.id || 0),
     { enabled: !!selectedTypeActivite }
   );
 
   useEffect(() => {
-    if (selectedTypeActivite) {
-      refetchFilieres();
-    }
-  }, [selectedTypeActivite, refetchFilieres]);
+    refetchFilieres();
+  }, [selectedTypeActivite]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("values", values);
-    // Add your submission logic here
+    try {
+      const response = api.post(`/activite`, values).then((res) => {
+        console.log(response);
+      });
+
+      toast({
+        description: "une activité a été ajouté avec succès.",
+        className: "bg-green-500 text-white",
+        duration: 3000,
+        title: "Succès",
+      });
+      router.push("/activites");
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout d'activité.",
+        duration: 3000,
+        className: "bg-red-500 text-white",
+      });
+    }
   }
 
   return (
@@ -133,6 +153,23 @@ export default function AddActivitePage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="nom"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nom d'activité"
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                 <FormField
                   control={form.control}
                   name="typeActivite"
@@ -230,7 +267,7 @@ export default function AddActivitePage() {
                       <FormControl>
                         <Input
                           type="number"
-                          {...field}
+                          value={field.value ?? 0}
                           onChange={(e) =>
                             field.onChange(parseInt(e.target.value))
                           }
@@ -249,7 +286,7 @@ export default function AddActivitePage() {
                       <FormControl>
                         <Input
                           type="number"
-                          {...field}
+                          value={field.value ?? 0}
                           onChange={(e) =>
                             field.onChange(parseFloat(e.target.value))
                           }
@@ -361,39 +398,42 @@ export default function AddActivitePage() {
                 />
                 <FormField
                   control={form.control}
-                  name="filieres"
+                  name="filiere"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Filières</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={
-                            filieres?.map((filiere) => ({
-                              label: filiere.nom || "",
-                              value: filiere.id?.toString() || "",
-                            })) || []
+                      <FormLabel>Filiere</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          const selectedFiliere = filieres?.find(
+                            (c) => c.id === parseInt(value)
+                          );
+                          if (selectedFiliere) {
+                            field.onChange(selectedFiliere);
                           }
-                          value={field.value.map((filiere) => ({
-                            label:
-                              filieres?.find((f) => f.id === filiere.id)?.nom ||
-                              "",
-                            value: filiere.id.toString(),
-                          }))}
-                          onChange={(selectedOptions) => {
-                            field.onChange(
-                              selectedOptions.map((option) => ({
-                                id: parseInt(option.value),
-                              }))
-                            );
-                          }}
-                          placeholder="Sélectionner des filières"
-                          disabled={!selectedTypeActivite}
-                        />
-                      </FormControl>
+                        }}
+                        value={field.value.id.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner une filiere" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {filieres?.map((filiere) => (
+                            <SelectItem
+                              key={filiere.id}
+                              value={filiere.id?.toString() ?? ""}
+                            >
+                              {filiere.nom}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                
               </div>
               <Button type="submit">Ajouter l&apos;activité</Button>
             </form>
