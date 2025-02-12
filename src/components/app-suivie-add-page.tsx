@@ -28,17 +28,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { api } from "@/app/api";
-import { getFilieres } from "@/app/api/Filiere";
+
 import { getCentres } from "@/app/api/centre";
 import { getbeneficiaireById } from "@/app/api/Beneficiaire";
-import { getActivites } from "@/app/api/Activite";
+import { getActiviteByCentre, getactiviteById, getActivites } from "@/app/api/Activite";
+import { getFiliereByActivite, getFilieresByTypeActivite } from "@/app/api/Filiere";
 
 const formSchema = z.object({
   beneficiaire: z.object({ id: z.number() }),
   filiere: z.object({ id: z.number() }).refine((value) => value.id > 0, {
     message: "Veuillez sélectionner une filiere.",
   }),
-  activite: z.object({ id: z.number() }).refine((value) => value.id > 0, {
+  activite: z.object({ id: z.number()
+  }).refine((value) => value.id > 0, {
     message: "Veuillez sélectionner une activité.",
   }),
   centre: z.object({ id: z.number() }).refine((value) => value.id > 0, {
@@ -69,8 +71,24 @@ export function AddSuiviePage({ benef }: { benef: number }) {
     },
   }); 
 
-  const { data: filieres } = useQuery("filieres", getFilieres);
-  const { data: activites } = useQuery("activites", getActivites);
+  
+  const activiteId = form.watch("activite.id");
+
+const { data: activite, isLoading } = useQuery({
+  queryKey: ["activite", activiteId],
+  queryFn: () => getactiviteById(activiteId),
+  enabled: !!activiteId, // Empêche l'appel API si activiteId est null/undefined
+});
+const { data: filieres } = useQuery({
+  queryKey: ["filiere", form.watch("activite.id")],
+  queryFn: () => getFiliereByActivite(form.watch("activite.id")),
+  enabled: !!form.watch("activite.id"),
+});
+  const { data: activites } = useQuery({
+    queryKey: ["activite", form.watch("centre.id")],
+    queryFn: () => getActiviteByCentre(form.watch("centre.id")),
+    enabled: !!form.watch("centre.id"),
+  });
   const { data: centres } = useQuery("centres", getCentres);
   const { data: beneficiaire } = useQuery(["beneficiaire", benef],
     () => getbeneficiaireById(benef));
@@ -242,7 +260,7 @@ export function AddSuiviePage({ benef }: { benef: number }) {
     </Card>
   );
 }
-function getBeneficiaireById(benef: number): any {
-    throw new Error("Function not implemented.");
-}
+
+
+
 

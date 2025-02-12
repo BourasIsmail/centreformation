@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,10 +37,13 @@ import { getAllProvinces } from "@/app/api/province";
 import { getCommuneByProvince } from "@/app/api/commune";
 import { getPersonnelByProvince } from "@/app/api/Personnel";
 import { getMilieuImplantation } from "@/app/api/MilieuImplantation";
-import { useQuery } from "react-query";
 import { getTypeCentre } from "@/app/api/TypeCentre";
 import { getProprieteDuCentres } from "@/app/api/ProprieteDuCentre";
 import { api } from "@/app/api";
+import { getCurrentUser } from "@/app/api/index";
+import { UserInfo } from "@/app/type/UserInfo";
+import { Commune } from "@/app/type/Commune";
+import { Personnel } from "@/app/type/Personnel";
 
 const formSchema = z.object({
   nomFr: z.string().min(2, {
@@ -117,9 +122,23 @@ const formSchema = z.object({
   observation: z.string().optional(),
 });
 
-export function AddCentre() {
+interface AddCentreProps {
+  isUpdate?: boolean;
+  centreId?: number | null;
+}
+
+export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [communeList, setCommuneList] = useState<Commune[]>([]);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -129,7 +148,6 @@ export function AddCentre() {
       typeCentre: { id: 0 },
       dateConstruction: "",
       telephone: "",
-      province: { id: 0 },
       commune: { id: 0 },
       adresse: "",
       responsable: { id: 0 },
@@ -151,6 +169,30 @@ export function AddCentre() {
     },
   });
 
+  useEffect(() => {
+    if (user?.province && user?.roles === "ADMIN_ROLES") {
+      if (user?.province?.id) {
+        form.setValue("province", { id: user.province.id }); // Set province value in the form
+      }
+    } else {
+      form.setValue("province", { id: 0 });
+    }
+  }, [user, form]);
+
+  useEffect(() => {
+    
+    if (isUpdate && centreId) {
+      // Fetch the existing centre data and populate the form
+      const fetchCentreData = async () => {
+        const response = await api.get(`/centre/${centreId}`);
+        Object.keys(response.data).forEach((key) => {
+          form.setValue(key as any, response.data[key]);
+        });
+      };
+      fetchCentreData();
+    }
+  }, [isUpdate, centreId, form]);
+
   const { data: provinces } = useQuery({
     queryKey: "provinces",
     queryFn: getAllProvinces,
@@ -161,18 +203,19 @@ export function AddCentre() {
     queryFn: getProprieteDuCentres,
   });
 
-  const { data: commune } = useQuery({
+  const { data: communes } = useQuery({
     queryKey: ["commune", form.watch("province.id")],
     queryFn: () => getCommuneByProvince(form.watch("province.id")),
     enabled: !!form.watch("province.id"),
   });
 
-  const { data: personnel } = useQuery({
+  const { data: personnels } = useQuery({
     queryKey: ["personnel", form.watch("province.id")],
     queryFn: () => getPersonnelByProvince(form.watch("province.id")),
     enabled: !!form.watch("province.id"),
   });
-
+  
+  
   const { data: milieuImplantation } = useQuery({
     queryKey: "milieuxImplantation",
     queryFn: getMilieuImplantation,
@@ -185,23 +228,29 @@ export function AddCentre() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = api.post(`/centre/add`, values).then((res) => {
-        console.log(response);
-      });
-
-      toast({
-        description: "Le centre a été ajouté avec succès.",
-        className: "bg-green-500 text-white",
-        duration: 3000,
-        title: "Succès",
-      });
+      if (isUpdate && centreId) {
+        await api.put(`/centre/${centreId}`, values);
+        toast({
+          description: "Le centre a été mis à jour avec succès.",
+          className: "bg-green-500 text-white",
+          duration: 3000,
+          title: "Succès",
+        });
+      } else {
+        await api.post(`/centre/add`, values);
+        toast({
+          description: "Le centre a été ajouté avec succès.",
+          className: "bg-green-500 text-white",
+          duration: 3000,
+          title: "Succès",
+        });
+      }
       router.push("/centres");
-      
     } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'ajout du centre.",
+        description: "Une erreur est survenue lors de l'ajout/mise à jour du centre.",
         duration: 3000,
         className: "bg-red-500 text-white",
       });
@@ -212,10 +261,9 @@ export function AddCentre() {
     <div className="container mx-auto px-4">
       <Card className="w-full max-w-6xl mx-auto">
         <CardHeader>
-          <CardTitle>Ajouter un nouveau centre</CardTitle>
+          <CardTitle>{isUpdate ? "Mettre à jour le centre" : "Ajouter un nouveau centre"}</CardTitle>
           <CardDescription>
-            Remplissez le formulaire pour ajouter un nouveau centre de
-            formation.
+            Remplissez le formulaire pour {isUpdate ? "mettre à jour le centre de formation" : "ajouter un nouveau centre de formation"}.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -331,35 +379,43 @@ export function AddCentre() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="province"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Province</FormLabel>
-                      <Select
-                        onValueChange={(value) =>
-                          field.onChange({ id: parseInt(value, 10) })
-                        }
-                        value={field.value.id.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une province" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {provinces?.map((p) => (
-                            <SelectItem key={p.id} value={p?.id?.toString() ?? ""}>
-                              {p.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {user?.roles === "SUPER_ADMIN_ROLES" && (
+                  <FormField
+                    control={form.control}
+                    name="province"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Province</FormLabel>
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange({ id: parseInt(value, 10) })
+                          }
+                          value={field.value.id.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez une province" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {provinces?.map((p) => (
+                              <SelectItem key={p.id} value={p?.id?.toString() ?? ""}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {user?.roles === "ADMIN_ROLES" && (
+                  <div>
+                    <p className="text-sm font-semibold">Province:</p>
+                    <p className="text-lg font-semibold">{user?.province?.name}</p>
+                  </div>
+                )}
                 <FormField
                   control={form.control}
                   name="commune"
@@ -367,23 +423,28 @@ export function AddCentre() {
                     <FormItem>
                       <FormLabel>Commune</FormLabel>
                       <Select
-                        onValueChange={(value) =>
-                          field.onChange({ id: parseInt(value, 10) })
-                        }
+                        onValueChange={(value) => {
+                          const selectedCommune = communeList?.find(
+                            (c) => c.id === parseInt(value)
+                          );
+                          if (selectedCommune) {
+                            field.onChange(selectedCommune);
+                          }
+                        }}
                         value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une commune" />
+                            <SelectValue placeholder="Sélectionner une commune" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {commune?.map((c) => (
+                          {communes?.map((commune) => (
                             <SelectItem
-                              key={c.id}
-                              value={c?.id?.toString() || ""}
+                              key={commune.id}
+                              value={commune.id?.toString() ?? ""}
                             >
-                              {c.name}
+                              {commune.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -392,30 +453,35 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
-                <FormField
+                  <FormField
                   control={form.control}
                   name="responsable"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Responsable</FormLabel>
                       <Select
-                        onValueChange={(value) =>
-                          field.onChange({ id: parseInt(value, 10) })
-                        }
+                        onValueChange={(value) => {
+                          const selectedPersonnel = personnels?.find(
+                            (p) => p.id === parseInt(value)
+                          );
+                          if (selectedPersonnel) {
+                            field.onChange(selectedPersonnel);
+                          }
+                        }}
                         value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez un responsable" />
+                            <SelectValue placeholder="Sélectionner un responsable" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {personnel?.map((p) => (
+                          {personnels?.map((person) => (
                             <SelectItem
-                              key={p.id}
-                              value={p?.id?.toString() || ""}
+                              key={person.id}
+                              value={person.id?.toString() ?? ""}
                             >
-                              {p.nomComplet}
+                              {person.nomComplet}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -424,6 +490,7 @@ export function AddCentre() {
                     </FormItem>
                   )}
                 />
+
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -492,248 +559,228 @@ export function AddCentre() {
                   )}
                 />
                 <FormField
-                  control={form.control}
-                  name="superficie"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Superficie (m²)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseFloat(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+  control={form.control}
+  name="superficie"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Superficie (m²)</FormLabel>
+      <FormControl>
+        <Input
+          type="number"
+          {...field}
+          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+</div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="utilisation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Utilisation</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Utilisation du centre" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="etat"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>État</FormLabel>
-                      <FormControl>
-                        <Input placeholder="État du centre" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="electricite"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Électricité</FormLabel>
-                      <FormControl>
-                        <Input placeholder="État de l'électricité" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <FormField
+    control={form.control}
+    name="utilisation"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Utilisation</FormLabel>
+        <FormControl>
+          <Input placeholder="Utilisation du centre" {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="etat"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>État</FormLabel>
+        <FormControl>
+          <Input placeholder="État du centre" {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="electricite"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Électricité</FormLabel>
+        <FormControl>
+          <Input placeholder="État de l'électricité" {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="telephoneFixe"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Téléphone fixe</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Numéro de téléphone fixe"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="internet"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Internet</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="État de la connexion internet"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="nbrPC"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre de PC</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <FormField
+    control={form.control}
+    name="telephoneFixe"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Téléphone fixe</FormLabel>
+        <FormControl>
+          <Input placeholder="Numéro de téléphone fixe" {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="internet"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Internet</FormLabel>
+        <FormControl>
+          <Input placeholder="État de la connexion internet" {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="nbrPC"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Nombre de PC</FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="nbrImprimante"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre d'imprimantes</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="nbrPersonneConnaissanceInfo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Personnes avec connaissances en informatique
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="nbrPersonneOperationelApresFormation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Personnes opérationnelles après formation
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <FormField
+    control={form.control}
+    name="nbrImprimante"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Nombre d'imprimantes</FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="nbrPersonneConnaissanceInfo"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          Personnes avec connaissances en informatique
+        </FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="nbrPersonneOperationelApresFormation"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          Personnes opérationnelles après formation
+        </FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="coutEstimationAmenagement"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Coût estimé d'aménagement</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseFloat(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="coutEstimationEquipement"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Coût estimé d'équipement</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseFloat(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <FormField
+    control={form.control}
+    name="coutEstimationAmenagement"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Coût estimé d'aménagement</FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+  <FormField
+    control={form.control}
+    name="coutEstimationEquipement"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Coût estimé d'équipement</FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
 
-              <FormField
-                control={form.control}
-                name="observation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observations</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Observations supplémentaires"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Ajouter le centre</Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+<FormField
+  control={form.control}
+  name="observation"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Observations</FormLabel>
+      <FormControl>
+        <Textarea
+          placeholder="Observations supplémentaires"
+          {...field}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+<Button type="submit">{isUpdate ? "Mettre à jour le centre" : "Ajouter le centre"}</Button>
+</form>
+</Form>
+</CardContent>
+</Card>
+</div>
+);
 }

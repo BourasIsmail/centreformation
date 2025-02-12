@@ -3,7 +3,7 @@ import { AddBeneficiaireFormComponent } from "@/components/components-beneficiai
 export default function AddBeneficiairePage() {
   return (
     <div className="container mx-auto py-10">
-      <AddBeneficiaireFormComponent />
+      <AddBeneficiaireFormComponent isUpdate={false} beneficiaireId={null}/>
     </div>
   );
 }

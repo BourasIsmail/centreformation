@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
   Users,
@@ -24,14 +24,20 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { UserInfo } from "@/app/type/UserInfo";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "@/app/api/index";
+import { get } from "http";
 
 // This is sample data.
 const data = {
-  user: {
-    name: "user",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  user: [
+    {
+      name: (await getCurrentUser())?.name ?? "",
+      email: (await getCurrentUser())?.email ?? "",
+      avatar: ""
+    }
+  ],
   teams: [
     {
       name: "Entraide Nationale",
@@ -138,7 +144,15 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-
+  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+      useEffect(() => {
+        const fetchUser = async () => {
+          const currentUser = await getCurrentUser();
+          setUser(currentUser);
+        };
+        fetchUser();
+      }, []);
   const navMainWithActiveState = React.useMemo(() => {
     return data.navMain.map((item) => ({
       ...item,
@@ -148,7 +162,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+      <SidebarHeader onClick={() => router.push("/")} // Redirect to index when clicking the header
+  className="cursor-pointer">
         <TeamSwitcher
           teams={data.teams.map((team) => ({
             ...team,
@@ -169,8 +184,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+      {user && <NavUser user={user} />}
+            </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

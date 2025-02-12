@@ -51,6 +51,7 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery } from "react-query";
 import { Activite } from "@/app/type/Activite";
 import { getActivites } from "@/app/api/Activite";
+import { useRouter } from "next/navigation";
 
 const columns: ColumnDef<Activite>[] = [
   {
@@ -154,6 +155,7 @@ const columns: ColumnDef<Activite>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const activite = row.original;
+      const router = useRouter();
 
       return (
         <DropdownMenu>
@@ -174,7 +176,7 @@ const columns: ColumnDef<Activite>[] = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Voir les détails</DropdownMenuItem>
-            <DropdownMenuItem>Modifier</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/activites/${activite.id}`)}>Modifier</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

@@ -53,8 +53,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "react-query";
-import { getCentres } from "@/app/api/centre";
+import { getCentreByProvince, getCentres } from "@/app/api/centre";
 import { Centre } from "@/app/type/Centre";
+import { getCurrentUser } from "@/app/api/index";
+import { UserInfo } from "@/app/type/UserInfo";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const statuses = [
   {
@@ -153,7 +157,7 @@ export const columns: ColumnDef<Centre>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const centre = row.original;
-
+      const router = useRouter();
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -164,7 +168,7 @@ export const columns: ColumnDef<Centre>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Modifier</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}`)}>Modifier</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
               Supprimer
@@ -186,14 +190,22 @@ export function CentreTableComponent() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
   const [typeCentreFilter, setTypeCentreFilter] = React.useState<string[]>([]);
-
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const router = useRouter();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    fetchUser();
+  }, []);
   const {
     data: centres,
     isLoading,
     error,
   } = useQuery({
-    queryKey: "centres",
-    queryFn: getCentres,
+    queryKey: user?.roles ===  "ADMIN_ROLES" && user?.province ? ["centres", user?.province?.id] : ["centres"]  ,
+    queryFn: user?.roles === "ADMIN_ROLES" && user?.province ? () => getCentreByProvince(user?.province?.id!) : getCentres ,
   });
 
   const table = useReactTable({

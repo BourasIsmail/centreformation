@@ -53,11 +53,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "react-query";
-import { getBenefs } from "@/app/api/Beneficiaire";
+import { getBeneficiaireByProvince, getBenefs } from "@/app/api/Beneficiaire";
 import { Beneficiaire } from "@/app/type/Beneficiaire";
 import { Commune } from "@/app/type/Commune";
 import Link from "next/link";
-
+import { UserInfo } from "@/app/type/UserInfo";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "@/app/api/index";
+import { useRouter } from "next/navigation";
 
 const sexes = [
   { value: "M", label: "Masculin", color: "bg-blue-200 text-blue-800" },
@@ -158,7 +161,7 @@ export const columns: ColumnDef<Beneficiaire>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const beneficiaire = row.original;
-
+      const router = useRouter();
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -173,10 +176,9 @@ export const columns: ColumnDef<Beneficiaire>[] = [
             href={beneficiaire.id ? `/suivie/${beneficiaire.id}`: `#`}>
             <DropdownMenuItem>historique</DropdownMenuItem>
             </Link>
-            <Link
-            href={beneficiaire.id ? `/updateUser/${beneficiaire.id}`: `#`}>
-            <DropdownMenuItem>Modifier</DropdownMenuItem>
-            </Link>
+            
+            <DropdownMenuItem onClick={() => router.push(`/beneficiaire/${beneficiaire.id}`)}>Modifier</DropdownMenuItem>
+            
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
               Supprimer
@@ -197,15 +199,23 @@ export function BeneficiaireTableComponent() {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [sexeFilter, setSexeFilter] = React.useState<string[]>([]);
-
-  const {
-    data: beneficiaires,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: "beneficiaires",
-    queryFn: getBenefs,
-  });
+  const [user, setUser] = useState<UserInfo | null>(null);
+    useEffect(() => {
+      const fetchUser = async () => {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      };
+      fetchUser();
+    }, []);
+    const {
+      data: beneficiaires,
+      isLoading,
+      error,
+    } = useQuery({
+      queryKey: user?.roles ===  "ADMIN_ROLES" && user?.province ? ["beneficiaires", user?.province?.id] : ["beneficiaires"]  ,
+      queryFn: user?.roles === "ADMIN_ROLES" && user?.province ? () => getBeneficiaireByProvince(user?.province?.id!) : getBenefs ,
+    });
+  
 
   const table = useReactTable({
     data: beneficiaires || [],

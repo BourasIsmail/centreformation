@@ -24,3 +24,12 @@ export async function getbeneficiaireById(id: number): Promise<Beneficiaire> {
   });
   return data.data;
 }
+export async function getBeneficiaireByProvince(id: number): Promise<Beneficiaire[]> {
+  const token = getCookie("token");
+  const data = await api.get(`/beneficiaire/ByProvince/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data.data;
+}

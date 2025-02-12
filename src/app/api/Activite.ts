@@ -16,3 +16,21 @@ export async function getActivites(): Promise<Activite[]> {
     throw error;
   }
 }
+export async function getActiviteByCentre(id: number): Promise<Activite[]> {
+  const token = getCookie("token");
+  const data = await api.get(`/activite/byCentre/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data.data;
+}
+export async function getactiviteById(id: number): Promise<Activite> {
+  const token = getCookie("token");
+  const data = await api.get(`/activite/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data.data;
+}

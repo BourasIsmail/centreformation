@@ -31,3 +31,13 @@ export async function getFilieresByTypeActivite(
     throw error;
   }
 }
+export async function getFiliereByActivite(id: number): Promise<Filiere[]> {
+  const token = getCookie("token");
+  const data = await api.get(`/filiere/byActivite/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data.data;
+}
+

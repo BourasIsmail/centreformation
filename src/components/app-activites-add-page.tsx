@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useMutation } from "react-query";
+import { useQuery } from "react-query";
 import {
   Card,
   CardContent,
@@ -49,7 +49,6 @@ const formSchema = z.object({
   typeActivite: z.object({
     id: z.number(),
   }),
-  
   dateOuverture: z.string().min(1, { message: "Date d'ouverture est requise" }),
   responsableActivite: z.object({
     id: z.number(),
@@ -66,23 +65,27 @@ const formSchema = z.object({
   centre: z.object({
     id: z.number(),
   }),
-  filiere: z.object({
-    id: z.number(),
-    nom: z.string(),
-  }),
-  
+  filieres: z.array(
+    z.object({
+      id: z.number(),
+    })
+  ),
 });
 
-export default function AddActivitePage() {
+interface AddActiviteProps {
+  isUpdate?: boolean;
+  activiteId?: number | null;
+}
+
+export default function AddActivitePage({ isUpdate = false, activiteId = null }: AddActiviteProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [selectedTypeActivite, setSelectedTypeActivite] =
-    useState<TypeActivite | null>(null);
+  const [selectedTypeActivite, setSelectedTypeActivite] = useState<TypeActivite | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      typeActivite: { id: 0},
+      typeActivite: { id: 0 },
       nom: "",
       dateOuverture: "",
       responsableActivite: { id: 0, nomComplet: "" },
@@ -91,43 +94,57 @@ export default function AddActivitePage() {
       gestion: { id: 0, nom: "" },
       partenariat: "",
       dateSignatureConvention: "",
-      centre: { id: 0},
-      filiere: { id: 0, nom: "" },
+      centre: { id: 0 },
+      filieres: [],
     },
   });
 
-  const { data: typeActivites } = useQuery<TypeActivite[]>(
-    "typeActivites",
-    getTypeActivites
-  );
+  const { data: typeActivites } = useQuery<TypeActivite[]>("typeActivites", getTypeActivites);
   const { data: personnel } = useQuery("personnel", getPersonnels);
-  const { data: proprieteDuCentres } = useQuery(
-    "proprieteDuCentres",
-    getProprieteDuCentres
-  );
+  const { data: proprieteDuCentres } = useQuery("proprieteDuCentres", getProprieteDuCentres);
   const { data: centres } = useQuery("centres", getCentres);
-  const { data: filieres, refetch: refetchFilieres } = useQuery(
+  const { data: filieres, refetch: refetchFilieres } = useQuery<Filiere[]>(
     ["filieres", selectedTypeActivite?.id],
     () => getFilieresByTypeActivite(selectedTypeActivite?.id || 0),
     { enabled: !!selectedTypeActivite }
   );
 
   useEffect(() => {
+    if (isUpdate && activiteId) {
+      // Fetch the existing activite data and populate the form
+      const fetchActiviteData = async () => {
+        const response = await api.get(`/activite/${activiteId}`);
+        Object.keys(response.data).forEach((key) => {
+          form.setValue(key as any, response.data[key]);
+        });
+      };
+      fetchActiviteData();
+    }
+  }, [isUpdate, activiteId, form]);
+
+  useEffect(() => {
     refetchFilieres();
   }, [selectedTypeActivite]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = api.post(`/activite`, values).then((res) => {
-        console.log(response);
-      });
-
-      toast({
-        description: "une activité a été ajouté avec succès.",
-        className: "bg-green-500 text-white",
-        duration: 3000,
-        title: "Succès",
-      });
+      if (isUpdate && activiteId) {
+        await api.put(`/activite/${activiteId}`, values);
+        toast({
+          description: "L'activite a été mis à jour avec succès.",
+          className: "bg-green-500 text-white",
+          duration: 3000,
+          title: "Succès",
+        });
+      } else {
+        await api.post(`/activite/add`, values);
+        toast({
+          description: "L'activite a été ajouté avec succès.",
+          className: "bg-green-500 text-white",
+          duration: 3000,
+          title: "Succès",
+        });
+      }
       router.push("/activites");
     } catch (error) {
       console.error("Erreur:", error);
@@ -144,70 +161,68 @@ export default function AddActivitePage() {
     <div className="container mx-auto py-10">
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle>Ajouter une activité</CardTitle>
+          <CardTitle>{isUpdate ? "Mettre à jour l'activite" : "Ajouter une nouvelle activite"}</CardTitle>
           <CardDescription>
-            Remplissez le formulaire pour ajouter une nouvelle activité.
+            Remplissez le formulaire pour {isUpdate ? "mettre à jour l'activite " : "ajouter une nouvelle activite"}.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="nom"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Nom d'activité"
-                        {...field}
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
                 <FormField
                   control={form.control}
-                  name="typeActivite"
+                  name="nom"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type d&apos;activité</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          const selectedType = typeActivites?.find(
-                            (t) => t.id === parseInt(value)
-                          );
-                          if (selectedType) {
-                            field.onChange(selectedType);
-                            setSelectedTypeActivite(selectedType);
-                          }
-                        }}
-                        value={field.value.id.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un type d'activité" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {typeActivites?.map((type) => (
-                            <SelectItem
-                              key={type.id}
-                              value={type.id?.toString() ?? ""}
-                            >
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Nom </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nom d'activité"
+                          {...field}
+                          className="w-full"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                <FormField
+  control={form.control}
+  name="typeActivite"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Type d&apos;activité</FormLabel>
+      <Select
+        onValueChange={(value) => {
+          const selectedType = typeActivites?.find(
+            (t) => t.id === parseInt(value)
+          );
+          if (selectedType) {
+            field.onChange(selectedType); // Set the type activity
+            setSelectedTypeActivite(selectedType); // Update the selectedTypeActivite state
+          }
+        }}
+        value={field.value.id?.toString() || ""}
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner un type d'activité" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          {typeActivites?.map((type) => (
+            <SelectItem key={type.id} value={type.id?.toString() || ""}>
+              {type.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
                 <FormField
                   control={form.control}
                   name="dateOuverture"
@@ -397,45 +412,40 @@ export default function AddActivitePage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
-                  name="filiere"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Filiere</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          const selectedFiliere = filieres?.find(
-                            (c) => c.id === parseInt(value)
-                          );
-                          if (selectedFiliere) {
-                            field.onChange(selectedFiliere);
-                          }
-                        }}
-                        value={field.value.id.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner une filiere" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {filieres?.map((filiere) => (
-                            <SelectItem
-                              key={filiere.id}
-                              value={filiere.id?.toString() ?? ""}
-                            >
-                              {filiere.nom}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
+  control={form.control}
+  name="filieres"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Filières</FormLabel>
+      <FormControl>
+        <MultiSelect
+          options={
+            filieres?.map((filiere) => ({
+              label: filiere.nom || "",
+              value: filiere.id?.toString() || "",
+            })) || []
+          }
+          value={field.value.map((filiere) => ({
+            label:
+              filieres?.find((f) => f.id === filiere.id)?.nom || "",
+            value: filiere.id.toString(),
+          }))}
+          onChange={(selectedOptions) => {
+            field.onChange(
+              selectedOptions.map((option) => ({
+                id: parseInt(option.value),
+              }))
+            );
+          }}
+          placeholder="Sélectionner des filières"
+          disabled={!selectedTypeActivite} // Disable if no type activity selected
+        />
+      </FormControl>
+    </FormItem>
+  )}
+/>
               </div>
-              <Button type="submit">Ajouter l&apos;activité</Button>
+              <Button type="submit">{isUpdate ? "Mettre à jour l'activite" : "Ajouter une activite"}</Button>
             </form>
           </Form>
         </CardContent>

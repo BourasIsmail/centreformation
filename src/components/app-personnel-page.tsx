@@ -53,9 +53,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "react-query";
-import { getPersonnels } from "@/app/api/Personnel";
+import { getPersonnelByProvince, getPersonnels } from "@/app/api/Personnel";
 import { Personnel } from "@/app/type/Personnel";
-
+import { UserInfo } from "@/app/type/UserInfo";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "@/app/api/index";
+import { useRouter } from "next/navigation";
 const grades = [
   { value: "Grade 1", label: "Grade 1", color: "bg-blue-200 text-blue-800" },
   { value: "Grade 2", label: "Grade 2", color: "bg-green-200 text-green-800" },
@@ -171,6 +174,7 @@ export const columns: ColumnDef<Personnel>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const personnel = row.original;
+      const router = useRouter();
 
       return (
         <DropdownMenu>
@@ -182,7 +186,7 @@ export const columns: ColumnDef<Personnel>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Modifier</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/personnels/${personnel.id}`)}>Modifier</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
               Supprimer
@@ -205,15 +209,22 @@ export function PersonnelTableComponent() {
   const [gradeFilter, setGradeFilter] = React.useState<string[]>([]);
   const [diplomeFilter, setDiplomeFilter] = React.useState<string[]>([]);
 
-  const {
-    data: personnels,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: "personnels",
-    queryFn: getPersonnels,
-  });
-
+  const [user, setUser] = useState<UserInfo | null>(null);
+    useEffect(() => {
+      const fetchUser = async () => {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      };
+      fetchUser();
+    }, []);
+    const {
+      data: personnels,
+      isLoading,
+      error,
+    } = useQuery({
+      queryKey: user?.roles ===  "ADMIN_ROLES" && user?.province ? ["personnels", user?.province?.id] : ["personnels"]  ,
+      queryFn: user?.roles === "ADMIN_ROLES" && user?.province ? () => getPersonnelByProvince(user?.province?.id!) : getPersonnels ,
+    });
   const table = useReactTable({
     data: personnels || [],
     columns,
