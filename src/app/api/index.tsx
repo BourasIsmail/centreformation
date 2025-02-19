@@ -7,6 +7,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 api.interceptors.response.use(
@@ -41,7 +42,10 @@ export async function getUsers(): Promise<UserInfo[]> {
   const { data } = await api.get<UserInfo[]>("/auth/getUsers");
   return data;
 }
-
+export async function logout(): Promise<void> {
+  await api.post("/auth/logout"); // ✅ Calls backend to clear cookie
+  window.location.href = "/login"; // ✅ Redirect to login page after logout
+}
 async function tokenPayload(): Promise<string | null> {
   const token = getCookie("token");
   if (!token || typeof token !== "string") return null;
@@ -63,12 +67,6 @@ export async function getCurrentUser(): Promise<UserInfo | null> {
   return data;
 }
 
-export async function logout(): Promise<void> {
-  deleteCookie("token", { path: "/" });
-  if (typeof window !== "undefined") {
-    window.location.href = "/login";
-  }
-}
 
 export async function getUser(id: number): Promise<UserInfo | undefined> {
   try {

@@ -22,7 +22,7 @@ export function LoginPage() {
       const response = await api.post("/auth/login", { email, password });
       console.log(response.data);
       setCookie("token", response.data, {
-        maxAge: 60 * 60 * 24 * 30,
+        maxAge: 60 * 60 * 24 ,
         path: "/",
       });
       window.location.href = "/";

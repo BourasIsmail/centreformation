@@ -131,7 +131,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
   const { toast } = useToast();
   const router = useRouter();
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [communeList, setCommuneList] = useState<Commune[]>([]);
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await getCurrentUser();
@@ -210,7 +209,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
   });
 
   const { data: personnels } = useQuery({
-    queryKey: ["personnel", form.watch("province.id")],
+    queryKey: ["responsable", form.watch("province.id")],
     queryFn: () => getPersonnelByProvince(form.watch("province.id")),
     enabled: !!form.watch("province.id"),
   });
@@ -424,14 +423,11 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                       <FormLabel>Commune</FormLabel>
                       <Select
                         onValueChange={(value) => {
-                          const selectedCommune = communeList?.find(
-                            (c) => c.id === parseInt(value)
-                          );
+                          const selectedCommune = communes?.find((p) => p.id === parseInt(value));
                           if (selectedCommune) {
-                            field.onChange(selectedCommune);
+                            field.onChange({ id: selectedCommune.id });
                           }
                         }}
-                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -461,14 +457,11 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                       <FormLabel>Responsable</FormLabel>
                       <Select
                         onValueChange={(value) => {
-                          const selectedPersonnel = personnels?.find(
-                            (p) => p.id === parseInt(value)
-                          );
+                          const selectedPersonnel = personnels?.find((p) => p.id === parseInt(value));
                           if (selectedPersonnel) {
-                            field.onChange(selectedPersonnel);
+                            field.onChange({ id: selectedPersonnel.id });
                           }
                         }}
-                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -501,10 +494,12 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                     <FormItem>
                       <FormLabel>Milieu d'implantation</FormLabel>
                       <Select
-                        onValueChange={(value) =>
-                          field.onChange({ id: parseInt(value, 10) })
-                        }
-                        value={field.value.id.toString()}
+                        onValueChange={(value) => {
+                          const selectedMilieuImplantation = milieuImplantation?.find((p) => p.id === parseInt(value));
+                          if (selectedMilieuImplantation) {
+                            field.onChange({ id: selectedMilieuImplantation.id });
+                          }
+                        }}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -533,10 +528,12 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                     <FormItem>
                       <FormLabel>Propriété du centre</FormLabel>
                       <Select
-                        onValueChange={(value) =>
-                          field.onChange({ id: parseInt(value, 10) })
-                        }
-                        value={field.value.id.toString()}
+                        onValueChange={(value) => {
+                          const selectedProprietaire = proprietaire?.find((p) => p.id === parseInt(value));
+                          if (selectedProprietaire) {
+                            field.onChange({ id: selectedProprietaire.id });
+                          }
+                        }}
                       >
                         <FormControl>
                           <SelectTrigger>

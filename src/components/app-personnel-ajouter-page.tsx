@@ -262,14 +262,11 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
                       <FormLabel>Commune</FormLabel>
                       <Select
                         onValueChange={(value) => {
-                          const selectedCommune = communeList?.find(
-                            (c) => c.id === parseInt(value)
-                          );
+                          const selectedCommune = communes?.find((p) => p.id === parseInt(value));
                           if (selectedCommune) {
-                            field.onChange(selectedCommune);
+                            field.onChange({ id: selectedCommune.id });
                           }
                         }}
-                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>

@@ -72,13 +72,7 @@ export function AddSuiviePage({ benef }: { benef: number }) {
   }); 
 
   
-  const activiteId = form.watch("activite.id");
 
-const { data: activite, isLoading } = useQuery({
-  queryKey: ["activite", activiteId],
-  queryFn: () => getactiviteById(activiteId),
-  enabled: !!activiteId, // Empêche l'appel API si activiteId est null/undefined
-});
 const { data: filieres } = useQuery({
   queryKey: ["filiere", form.watch("activite.id")],
   queryFn: () => getFiliereByActivite(form.watch("activite.id")),

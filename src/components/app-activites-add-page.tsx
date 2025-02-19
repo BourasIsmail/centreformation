@@ -99,16 +99,16 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
     },
   });
 
-  const { data: typeActivites } = useQuery<TypeActivite[]>("typeActivites", getTypeActivites);
+  const { data: typeActivites } = useQuery<TypeActivite[]>("typeActivite", getTypeActivites);
   const { data: personnel } = useQuery("personnel", getPersonnels);
-  const { data: proprieteDuCentres } = useQuery("proprieteDuCentres", getProprieteDuCentres);
+  const { data: gestions } = useQuery("proprieteDuCentres", getProprieteDuCentres);
   const { data: centres } = useQuery("centres", getCentres);
-  const { data: filieres, refetch: refetchFilieres } = useQuery<Filiere[]>(
+  const { data: filieres} = useQuery<Filiere[]>(
     ["filieres", selectedTypeActivite?.id],
     () => getFilieresByTypeActivite(selectedTypeActivite?.id || 0),
     { enabled: !!selectedTypeActivite }
   );
-
+  
   useEffect(() => {
     if (isUpdate && activiteId) {
       // Fetch the existing activite data and populate the form
@@ -122,9 +122,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
     }
   }, [isUpdate, activiteId, form]);
 
-  useEffect(() => {
-    refetchFilieres();
-  }, [selectedTypeActivite]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -194,16 +192,14 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
     <FormItem>
       <FormLabel>Type d&apos;activité</FormLabel>
       <Select
+        
         onValueChange={(value) => {
-          const selectedType = typeActivites?.find(
-            (t) => t.id === parseInt(value)
-          );
-          if (selectedType) {
-            field.onChange(selectedType); // Set the type activity
-            setSelectedTypeActivite(selectedType); // Update the selectedTypeActivite state
+          const selectedTypeActivite = typeActivites?.find((p) => p.id === parseInt(value));
+          if (selectedTypeActivite) {
+            field.onChange({ id: selectedTypeActivite.id});
+            setSelectedTypeActivite(selectedTypeActivite);
           }
         }}
-        value={field.value.id?.toString() || ""}
       >
         <FormControl>
           <SelectTrigger>
@@ -244,14 +240,11 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                       <FormLabel>Responsable</FormLabel>
                       <Select
                         onValueChange={(value) => {
-                          const selectedPersonnel = personnel?.find(
-                            (p) => p.id === parseInt(value)
-                          );
+                          const selectedPersonnel = personnel?.find((p) => p.id === parseInt(value));
                           if (selectedPersonnel) {
-                            field.onChange(selectedPersonnel);
+                            field.onChange({ id: selectedPersonnel.id, nomComplet: selectedPersonnel.nomComplet });
                           }
                         }}
-                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -319,14 +312,11 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                       <FormLabel>Gestion</FormLabel>
                       <Select
                         onValueChange={(value) => {
-                          const selectedGestion = proprieteDuCentres?.find(
-                            (p) => p.id === parseInt(value)
-                          );
+                          const selectedGestion = gestions?.find((p) => p.id === parseInt(value));
                           if (selectedGestion) {
-                            field.onChange(selectedGestion);
+                            field.onChange({ id: selectedGestion.id, nom: selectedGestion.nom });
                           }
                         }}
-                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -334,7 +324,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {proprieteDuCentres?.map((propriete) => (
+                          {gestions?.map((propriete) => (
                             <SelectItem
                               key={propriete.id}
                               value={propriete.id?.toString() ?? ""}
@@ -381,15 +371,13 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                     <FormItem>
                       <FormLabel>Centre</FormLabel>
                       <Select
+                      
                         onValueChange={(value) => {
-                          const selectedCentre = centres?.find(
-                            (c) => c.id === parseInt(value)
-                          );
+                          const selectedCentre = centres?.find((p) => p.id === parseInt(value));
                           if (selectedCentre) {
-                            field.onChange(selectedCentre);
+                            field.onChange({ id: selectedCentre.id });
                           }
                         }}
-                        value={field.value.id.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -419,31 +407,36 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
       <FormLabel>Filières</FormLabel>
       <FormControl>
         <MultiSelect
+          // Mapping des options disponibles pour la sélection, en se basant sur la query "filieres"
           options={
             filieres?.map((filiere) => ({
               label: filiere.nom || "",
-              value: filiere.id?.toString() || "",
+              value: filiere?.id?.toString() || "",
             })) || []
           }
+          // On transforme la valeur actuelle du champ pour afficher les options sélectionnées
           value={field.value.map((filiere) => ({
             label:
               filieres?.find((f) => f.id === filiere.id)?.nom || "",
             value: filiere.id.toString(),
           }))}
+          // Lorsque l'utilisateur change la sélection, on met à jour la valeur du champ
           onChange={(selectedOptions) => {
             field.onChange(
               selectedOptions.map((option) => ({
-                id: parseInt(option.value),
+                id: parseInt(option.value, 10),
               }))
             );
           }}
           placeholder="Sélectionner des filières"
-          disabled={!selectedTypeActivite} // Disable if no type activity selected
+          // Désactive le MultiSelect si aucun type d'activité n'est sélectionné
+          
         />
       </FormControl>
     </FormItem>
   )}
 />
+
               </div>
               <Button type="submit">{isUpdate ? "Mettre à jour l'activite" : "Ajouter une activite"}</Button>
             </form>

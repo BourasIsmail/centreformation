@@ -30,14 +30,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { UserInfo } from "@/app/type/UserInfo"
-
+import router from "next/router"
+import { logout } from "@/app/api/index"
 export function NavUser({
   user
 }: {
   user: UserInfo
 }) {
   const { isMobile } = useSidebar()
-
+  const handleLogout = async () => {
+    await logout();
+    
+  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -88,7 +92,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
