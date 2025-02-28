@@ -59,6 +59,7 @@ import { getCurrentUser } from "@/app/api/index";
 import { UserInfo } from "@/app/type/UserInfo";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const statuses = [
   {
@@ -168,6 +169,8 @@ export const columns: ColumnDef<Centre>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => router.push(`/facture/${centre.id}`)}>Facture</DropdownMenuItem>
+
             <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}`)}>Modifier</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
