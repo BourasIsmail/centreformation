@@ -31,4 +31,6 @@ export type Centre = {
   coutEstimationAmenagement?: number;
   coutEstimationEquipement?: number;
   observation?: string;
+    longitude?: number;
+    latitude?: number;
 };
