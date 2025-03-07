@@ -46,6 +46,7 @@ const data = {
     },
   ],
   navMain: [
+    
     {
       title: "Centres",
       url: "#",
@@ -59,10 +60,7 @@ const data = {
           title: "Ajouter un centre",
           url: "/centres/ajouter",
         },
-        {
-          title: "Statistiques",
-          url: "/centres/statistiques",
-        },
+        
       ],
     },
     {
@@ -78,10 +76,7 @@ const data = {
           title: "Ajouter un beneficiaire",
           url: "/beneficiaire/ajouter",
         },
-        {
-          title: "Statistiques",
-          url: "/beneficiaire/statistiques",
-        },
+        
       ],
     },
     {
@@ -97,10 +92,7 @@ const data = {
           title: "Ajouter une activité",
           url: "/activites/ajouter",
         },
-        {
-          title: "Statistiques",
-          url: "/activites/statistiques",
-        },
+        
       ],
     },
     {
@@ -116,13 +108,12 @@ const data = {
           title: "Ajouter un personnel",
           url: "/personnels/ajouter",
         },
-        {
-          title: "Statistiques",
-          url: "/personnels/statistiques",
-        },
+        
       ],
     },
+    
   ],
+  
   projects: [
     {
       name: "Filières",
@@ -130,16 +121,20 @@ const data = {
       url: "/filieres",
     },
     {
-      name: "Ajouter un rapport de suivi de formation",
-      icon: Clipboard,
-      url: "/rapports/ajouter",
+      name: "Statistiques",
+      icon: Clipboard,  
+      url: "/centres/statistiques",
     },
-    {
-      name: "localisation des centres",
-      url: "/centres/localisation",
-      icon: Map,
-    },
-  ],
+    ...(await getCurrentUser())?.roles === "SUPER_ADMIN_ROLES"
+      ? [
+          {
+            name: "Utilisateurs",
+            icon: Users,
+            url: "/users",
+          },
+        ]
+      : [],
+  ].flat(),
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

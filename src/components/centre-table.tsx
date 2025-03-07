@@ -169,7 +169,7 @@ export const columns: ColumnDef<Centre>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => router.push(`/facture/${centre.id}`)}>Facture</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}/facture`)}>Facture</DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}`)}>Modifier</DropdownMenuItem>
             <DropdownMenuSeparator />

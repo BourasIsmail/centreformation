@@ -279,18 +279,23 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         <FormItem>
                                             <FormLabel>Type de centre</FormLabel>
                                             <Select
-                                                onValueChange={(value) => field.onChange({ id: Number.parseInt(value, 10) })}
-                                                value={field.value.id.toString()}
+                                                value={field.value?.id ? field.value.id.toString() : ""}
+                                                onValueChange={(value) => {
+                                                    const selectedtypeCentre = typeCentre?.find((p) => p.id === Number.parseInt(value))
+                                                    if (selectedtypeCentre) {
+                                                        field.onChange({ id: selectedtypeCentre.id })
+                                                    }
+                                                }}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Sélectionnez un type de centre" />
+                                                        <SelectValue placeholder="Sélectionner un type de centre" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {typeCentre?.map((type) => (
-                                                        <SelectItem key={type.id} value={type?.id?.toString() || ""}>
-                                                            {type.name}
+                                                    {typeCentre?.map((tc) => (
+                                                        <SelectItem key={tc.id} value={tc.id?.toString() ?? ""}>
+                                                            {tc.name}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -299,6 +304,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
+                                
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -346,32 +352,38 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {user?.roles === "SUPER_ADMIN_ROLES" && (
                                     <FormField
-                                        control={form.control}
-                                        name="province"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Province</FormLabel>
-                                                <Select
-                                                    onValueChange={(value) => field.onChange({ id: Number.parseInt(value, 10) })}
-                                                    value={field.value.id.toString()}
-                                                >
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Sélectionnez une province" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {provinces?.map((p) => (
-                                                            <SelectItem key={p.id} value={p?.id?.toString() ?? ""}>
-                                                                {p.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    control={form.control}
+                                    name="province"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Province</FormLabel>
+                                            <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
+                                                onValueChange={(value) => {
+                                                    const selectedProvince = provinces?.find((p) => p.id === Number.parseInt(value))
+                                                    if (selectedProvince) {
+                                                        field.onChange({ id: selectedProvince.id })
+                                                    }
+                                                }}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionnez une province" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {provinces?.map((province) => (
+                                                        <SelectItem key={province.id} value={province.id?.toString() ?? ""}>
+                                                            {province.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                    
                                 )}
                                 {user?.roles === "ADMIN_ROLES" && (
                                     <div>
@@ -386,10 +398,11 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         <FormItem>
                                             <FormLabel>Commune</FormLabel>
                                             <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
                                                 onValueChange={(value) => {
-                                                    const selectedCommune = communes?.find((p) => p.id === Number.parseInt(value))
+                                                    const selectedCommune = communes?.find((p) => p.id === Number(value));
                                                     if (selectedCommune) {
-                                                        field.onChange({ id: selectedCommune.id })
+                                                        field.onChange(selectedCommune);
                                                     }
                                                 }}
                                             >
@@ -417,6 +430,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         <FormItem>
                                             <FormLabel>Responsable</FormLabel>
                                             <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
                                                 onValueChange={(value) => {
                                                     const selectedPersonnel = personnels?.find((p) => p.id === Number.parseInt(value))
                                                     if (selectedPersonnel) {
@@ -451,6 +465,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         <FormItem>
                                             <FormLabel>Milieu d'implantation</FormLabel>
                                             <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
                                                 onValueChange={(value) => {
                                                     const selectedMilieuImplantation = milieuImplantation?.find(
                                                         (p) => p.id === Number.parseInt(value),
@@ -484,6 +499,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         <FormItem>
                                             <FormLabel>Propriété du centre</FormLabel>
                                             <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
                                                 onValueChange={(value) => {
                                                     const selectedProprietaire = proprietaire?.find((p) => p.id === Number.parseInt(value))
                                                     if (selectedProprietaire) {

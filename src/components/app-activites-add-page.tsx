@@ -103,12 +103,12 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
   const { data: personnel } = useQuery("personnel", getPersonnels);
   const { data: gestions } = useQuery("proprieteDuCentres", getProprieteDuCentres);
   const { data: centres } = useQuery("centres", getCentres);
-  const { data: filieres} = useQuery<Filiere[]>(
-    ["filieres", selectedTypeActivite?.id],
-    () => getFilieresByTypeActivite(selectedTypeActivite?.id || 0),
-    { enabled: !!selectedTypeActivite }
-  );
-  
+ 
+  const { data: filieres } = useQuery<Filiere[]>({
+        queryKey: ["filiere", form.watch("typeActivite.id")],
+        queryFn: () => getFilieresByTypeActivite(form.watch("typeActivite.id")),
+        enabled: !!form.watch("typeActivite.id"),
+      });
   useEffect(() => {
     if (isUpdate && activiteId) {
       // Fetch the existing activite data and populate the form
@@ -192,7 +192,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
     <FormItem>
       <FormLabel>Type d&apos;activité</FormLabel>
       <Select
-        
+        value={field.value?.id ? field.value.id.toString() : ""}
         onValueChange={(value) => {
           const selectedTypeActivite = typeActivites?.find((p) => p.id === parseInt(value));
           if (selectedTypeActivite) {
@@ -239,6 +239,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                     <FormItem>
                       <FormLabel>Responsable</FormLabel>
                       <Select
+                        value={field.value?.id ? field.value.id.toString() : ""}
                         onValueChange={(value) => {
                           const selectedPersonnel = personnel?.find((p) => p.id === parseInt(value));
                           if (selectedPersonnel) {
@@ -311,6 +312,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                     <FormItem>
                       <FormLabel>Gestion</FormLabel>
                       <Select
+                        value={field.value?.id ? field.value.id.toString() : ""}
                         onValueChange={(value) => {
                           const selectedGestion = gestions?.find((p) => p.id === parseInt(value));
                           if (selectedGestion) {
@@ -365,40 +367,37 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                   )}
                 />
                 <FormField
-                  control={form.control}
-                  name="centre"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Centre</FormLabel>
-                      <Select
-                      
-                        onValueChange={(value) => {
-                          const selectedCentre = centres?.find((p) => p.id === parseInt(value));
-                          if (selectedCentre) {
-                            field.onChange({ id: selectedCentre.id });
-                          }
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un centre" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {centres?.map((centre) => (
-                            <SelectItem
-                              key={centre.id}
-                              value={centre.id?.toString() ?? ""}
-                            >
-                              {centre.nomFr}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                                    control={form.control}
+                                    name="centre"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Centre</FormLabel>
+                                            <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
+                                                onValueChange={(value) => {
+                                                    const selectedCentre = centres?.find((p) => p.id === Number(value));
+                                                    if (selectedCentre) {
+                                                        field.onChange(selectedCentre);
+                                                    }
+                                                }}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionner un centre" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {centres?.map((centre) => (
+                                                        <SelectItem key={centre.id} value={centre.id?.toString() ?? ""}>
+                                                            {centre.nomFr}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                 <FormField
   control={form.control}
   name="filieres"
@@ -407,30 +406,31 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
       <FormLabel>Filières</FormLabel>
       <FormControl>
         <MultiSelect
-          // Mapping des options disponibles pour la sélection, en se basant sur la query "filieres"
-          options={
-            filieres?.map((filiere) => ({
-              label: filiere.nom || "",
-              value: filiere?.id?.toString() || "",
-            })) || []
-          }
-          // On transforme la valeur actuelle du champ pour afficher les options sélectionnées
-          value={field.value.map((filiere) => ({
-            label:
-              filieres?.find((f) => f.id === filiere.id)?.nom || "",
-            value: filiere.id.toString(),
-          }))}
-          // Lorsque l'utilisateur change la sélection, on met à jour la valeur du champ
+          // Vérifier que "filieres" est bien défini avant de mapper
+          options={filieres?.map((filiere) => ({
+            label: filiere.nom || "",
+            value: filiere.id?.toString() || "",
+          })) || []}
+
+          // Vérifier que "field.value" est un tableau avant de mapper
+          value={(field.value || []).map((filiere) => {
+            const selectedFiliere = filieres?.find((f) => f.id === filiere.id);
+            return {
+              label: selectedFiliere?.nom || "",
+              value: filiere.id?.toString() || "",
+            };
+          })}
+
+          // Lors d'un changement, on met à jour "field.value"
           onChange={(selectedOptions) => {
             field.onChange(
               selectedOptions.map((option) => ({
-                id: parseInt(option.value, 10),
+                id: Number(option.value), // Convertir en Number proprement
               }))
             );
           }}
+
           placeholder="Sélectionner des filières"
-          // Désactive le MultiSelect si aucun type d'activité n'est sélectionné
-          
         />
       </FormControl>
     </FormItem>

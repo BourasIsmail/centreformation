@@ -59,15 +59,12 @@ import { Commune } from "@/app/type/Commune";
 import Link from "next/link";
 import { UserInfo } from "@/app/type/UserInfo";
 import { useEffect, useState } from "react";
-import { getCurrentUser } from "@/app/api/index";
+import { getCurrentUser, getUsers } from "@/app/api/index";
 import { useRouter } from "next/navigation";
+import { Province } from "@/app/type/Province";
 
-const sexes = [
-  { value: "M", label: "Masculin", color: "bg-blue-200 text-blue-800" },
-  { value: "F", label: "Féminin", color: "bg-pink-200 text-pink-800" },
-];
 
-export const columns: ColumnDef<Beneficiaire>[] = [
+export const columns = (user: UserInfo | null): ColumnDef<UserInfo>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -88,7 +85,7 @@ export const columns: ColumnDef<Beneficiaire>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "nom",
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <Button
@@ -100,60 +97,27 @@ export const columns: ColumnDef<Beneficiaire>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div>{row.getValue("nom")}</div>,
+    cell: ({ row }) => <div>{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "prenom",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Prénom
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("prenom")}</div>,
+    accessorKey: "email",
+    header: "EMAIL",
+    cell: ({ row }) => <div>{row.getValue("email")}</div>,
   },
   {
-    accessorKey: "dateNaissance",
-    header: "Date de naissance",
-    cell: ({ row }) => <div>{row.getValue("dateNaissance")}</div>,
+    accessorKey: "roles",
+    header: "ROLES",
+    cell: ({ row }) => <div>{row.getValue("roles")}</div>,
   },
+  
+  
+ 
   {
-    accessorKey: "sexe",
-    header: "Sexe",
+    accessorKey: "province",
+    header: "Province",
     cell: ({ row }) => {
-      const sexe = sexes.find((s) => s.value === row.getValue("sexe"));
-      return (
-        <Badge
-          className={`font-normal ${
-            sexe?.color || "bg-gray-200 text-gray-800"
-          }`}
-        >
-          {sexe?.label || row.getValue("sexe")}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "cin",
-    header: "CIN",
-    cell: ({ row }) => <div>{row.getValue("cin")}</div>,
-  },
-  {
-    accessorKey: "telephone",
-    header: "Téléphone",
-    cell: ({ row }) => <div>{row.getValue("telephone")}</div>,
-  },
-  {
-    accessorKey: "commune",
-    header: "Commune",
-    cell: ({ row }) => {
-      const commune = row.getValue("commune") as Commune | undefined;
-      return <div>{commune?.name || "N/A"}</div>;
+      const province = row.getValue("province") as Province | undefined;
+      return <div>{province?.name || "N/A"}</div>;
     },
   },
   {
@@ -172,12 +136,9 @@ export const columns: ColumnDef<Beneficiaire>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link 
-            href={beneficiaire.id ? `/suivie/${beneficiaire.id}`: `#`}>
-            <DropdownMenuItem>historique</DropdownMenuItem>
-            </Link>
             
-            <DropdownMenuItem onClick={() => router.push(`/beneficiaire/${beneficiaire.id}`)}>Modifier</DropdownMenuItem>
+            
+            <DropdownMenuItem onClick={() => router.push(`/users/${user?.id}`)}>Modifier</DropdownMenuItem>
             
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
@@ -190,7 +151,7 @@ export const columns: ColumnDef<Beneficiaire>[] = [
   },
 ];
 
-export function BeneficiaireTableComponent() {
+export function UserTableComponent() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -198,7 +159,6 @@ export function BeneficiaireTableComponent() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [sexeFilter, setSexeFilter] = React.useState<string[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
     useEffect(() => {
       const fetchUser = async () => {
@@ -207,28 +167,18 @@ export function BeneficiaireTableComponent() {
       };
       fetchUser();
     }, []);
-    const {
-      data: beneficiaires = [],
-      isLoading,
-      error,
-    } = useQuery({
-      queryKey: user?.roles === "ADMIN_ROLES" && user?.province 
-        ? ["beneficiaires", user.province.id] 
-        : ["beneficiaires"],
-      queryFn: () => {
-        if (user?.roles === "ADMIN_ROLES" && user?.province) {
-          return getBeneficiaireByProvince(user?.province?.id!);
+    const { data: users = [], isLoading, error } = useQuery(["users"], async () => {
+        if (user?.roles?.includes("SUPER_ADMIN_ROLES")) {
+          return await getUsers();
         }
-        return getBenefs();
-      },
-      enabled: !!user, // Ensures the query doesn't run if user is undefined
-    });
+        return [];
+      }, { enabled: !!user });
     
   
 
   const table = useReactTable({
-    data: beneficiaires || [],
-    columns,
+    data: users || [],
+    columns: columns(user),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -245,11 +195,7 @@ export function BeneficiaireTableComponent() {
     },
   });
 
-  React.useEffect(() => {
-    table
-      .getColumn("sexe")
-      ?.setFilterValue(sexeFilter.length ? sexeFilter : undefined);
-  }, [sexeFilter, table]);
+  
 
   if (isLoading) {
     return <div>Chargement des données...</div>;
@@ -262,98 +208,19 @@ export function BeneficiaireTableComponent() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bénéficiaires</CardTitle>
+        <CardTitle>Users</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <Input
             placeholder="Rechercher par nom..."
-            value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("nom")?.setFilterValue(event.target.value)
+              table.getColumn("name")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
-          <Input
-            placeholder="Rechercher par CIN..."
-            value={(table.getColumn("cin")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("cin")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="border-dashed">
-                Sexe
-                <ChevronDownIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
-              <div className="p-2">
-                <div className="flex items-center px-2 pb-2">
-                  <MagnifyingGlassIcon className="mr-2 h-4 w-4 opacity-50" />
-                  <Input
-                    placeholder="Rechercher un sexe..."
-                    className="h-8 w-full"
-                    onChange={(event) => {
-                      const searchValue = event.target.value.toLowerCase();
-                      const filteredSexes = sexes
-                        .filter((sexe) =>
-                          sexe.label.toLowerCase().includes(searchValue)
-                        )
-                        .map((sexe) => sexe.value);
-                      setSexeFilter(filteredSexes);
-                    }}
-                  />
-                </div>
-                <Separator />
-              </div>
-              <div className="max-h-[300px] overflow-auto px-2 py-2">
-                {sexes.map((sexe) => (
-                  <div
-                    key={sexe.value}
-                    className="flex items-center space-x-2 py-1.5"
-                  >
-                    <Checkbox
-                      checked={sexeFilter.includes(sexe.value)}
-                      onCheckedChange={(checked) => {
-                        setSexeFilter((prev) =>
-                          checked
-                            ? [...prev, sexe.value]
-                            : prev.filter((s) => s !== sexe.value)
-                        );
-                      }}
-                    />
-                    <div className="flex flex-1 items-center space-x-2">
-                      <Badge className={`font-normal ${sexe.color}`}>
-                        {sexe.label}
-                      </Badge>
-                    </div>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {
-                        beneficiaires?.filter(
-                          (item) => item.sexe === sexe.value
-                        ).length
-                      }
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <Separator />
-              <div className="p-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-center text-sm"
-                  onClick={() => {
-                    setSexeFilter([]);
-                  }}
-                >
-                  Réinitialiser les filtres
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -374,20 +241,14 @@ export function BeneficiaireTableComponent() {
                         column.toggleVisibility(!!value)
                       }
                     >
-                      {column.id === "nom"
-                        ? "Nom"
-                        : column.id === "prenom"
-                        ? "Prénom"
-                        : column.id === "dateNaissance"
-                        ? "Date de naissance"
-                        : column.id === "sexe"
-                        ? "Sexe"
-                        : column.id === "cin"
-                        ? "CIN"
-                        : column.id === "telephone"
-                        ? "Téléphone"
-                        : column.id === "commune"
-                        ? "Commune"
+                      {column.id === "name"
+                        ? "Name"
+                        : column.id === "email"
+                        ? "Email"
+                        : column.id === "roles"
+                        ? "Roles"
+                        : column.id === "province"
+                        ? "Province"
                         : column.id}
                     </DropdownMenuCheckboxItem>
                   );

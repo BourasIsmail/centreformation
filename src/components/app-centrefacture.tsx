@@ -38,7 +38,7 @@ export function FacturePage({ centre }: { centre: number }) {
     <Card>
       <CardHeader>
         <CardTitle>Suivi des bénéficiaires</CardTitle>
-        <Link href={`/facture/${centre}/ajouter`}>
+        <Link href={`/centres/${centre}/facture/ajouter`}>
           <Button className="ml-auto">
             <a>Ajouter un Suivi</a>
           </Button>

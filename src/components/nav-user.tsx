@@ -30,14 +30,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { UserInfo } from "@/app/type/UserInfo"
-import router from "next/router"
+
 import { logout } from "@/app/api/index"
+import { useRouter } from "next/navigation"
 export function NavUser({
   user
 }: {
   user: UserInfo
 }) {
   const { isMobile } = useSidebar()
+    const router = useRouter();
   const handleLogout = async () => {
     await logout();
     
@@ -82,10 +84,11 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/users/${user?.id}`)}>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
+              
               <DropdownMenuItem>
                 <Bell />
                 Notifications

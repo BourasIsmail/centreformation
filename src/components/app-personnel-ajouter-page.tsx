@@ -85,7 +85,8 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
       }else{
         form.setValue("province", { id: 0 });
       }
-    }, [user, form]);
+    }, [user, form])
+
     const { data: provinces } = useQuery({
       queryKey: "provinces",
       queryFn: getAllProvinces,
@@ -103,6 +104,7 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
           fetchPersonnelData();
         }
       }, [isUpdate, personnelId, form]);
+      
     const { data: communes } = useQuery({
         queryKey: ["commune", form.watch("province.id")],
         queryFn: () => getCommuneByProvince(form.watch("province.id")),
@@ -213,81 +215,80 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
               </FormItem>
             )}
           />
-
-          {/* Province (Only for SUPER_ADMIN) */}
-          {user?.roles === "SUPER_ADMIN_ROLES" && (
-            <FormField
-              control={form.control}
-              name="province"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Province</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange({ id: parseInt(value, 10) })}
-                    value={field.value?.id?.toString() ?? ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez une province" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {provinces?.map((p) => (
-                        <SelectItem key={p.id ?? ''} value={p.id?.toString() ?? ''}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {/* Province Display (Only for ADMIN) */}
-          {user?.roles === "ADMIN_ROLES" && (
-            <div>
-              <p className="text-sm font-semibold">Province:</p>
-              <p className="text-lg font-semibold">{user?.province?.name}</p>
-            </div>
-          )}
-
+                                {user?.roles === "SUPER_ADMIN_ROLES" && (
+                                    <FormField
+                                    control={form.control}
+                                    name="province"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Province</FormLabel>
+                                            <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
+                                                onValueChange={(value) => {
+                                                    const selectedProvince = provinces?.find((p) => p.id === Number.parseInt(value))
+                                                    if (selectedProvince) {
+                                                        field.onChange({ id: selectedProvince.id })
+                                                    }
+                                                }}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionnez une province" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {provinces?.map((province) => (
+                                                        <SelectItem key={province.id} value={province.id?.toString() ?? ""}>
+                                                            {province.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                    
+                                )}
+                                {user?.roles === "ADMIN_ROLES" && (
+                                    <div>
+                                        <p className="text-sm font-semibold">Province:</p>
+                                        <p className="text-lg font-semibold">{user?.province?.name}</p>
+                                    </div>
+                                )}
           {/* Commune */}
           <FormField
-                  control={form.control}
-                  name="commune"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Commune</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          const selectedCommune = communes?.find((p) => p.id === parseInt(value));
-                          if (selectedCommune) {
-                            field.onChange({ id: selectedCommune.id });
-                          }
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner une commune" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {communes?.map((commune) => (
-                            <SelectItem
-                              key={commune.id}
-                              value={commune.id?.toString() ?? ""}
-                            >
-                              {commune.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                                              control={form.control}
+                                              name="commune"
+                                              render={({ field }) => (
+                                                  <FormItem>
+                                                      <FormLabel>Commune</FormLabel>
+                                                      <Select
+                                                          value={field.value?.id ? field.value.id.toString() : ""}
+                                                          onValueChange={(value) => {
+                                                              const selectedCommune = communes?.find((p) => p.id === Number(value));
+                                                              if (selectedCommune) {
+                                                                  field.onChange(selectedCommune);
+                                                              }
+                                                          }}
+                                                      >
+                                                          <FormControl>
+                                                              <SelectTrigger>
+                                                                  <SelectValue placeholder="Sélectionner une commune" />
+                                                              </SelectTrigger>
+                                                          </FormControl>
+                                                          <SelectContent>
+                                                              {communes?.map((commune) => (
+                                                                  <SelectItem key={commune.id} value={commune.id?.toString() ?? ""}>
+                                                                      {commune.name}
+                                                                  </SelectItem>
+                                                              ))}
+                                                          </SelectContent>
+                                                      </Select>
+                                                      <FormMessage />
+                                                  </FormItem>
+                                              )}
+                                          />
 
         </div>
             <Button type="submit">{isUpdate ? "Mettre à jour le personnel" : "Ajouter le personnel"}</Button>
