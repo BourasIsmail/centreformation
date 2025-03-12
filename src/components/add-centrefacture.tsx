@@ -33,12 +33,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getAllProvinces } from "@/app/api/province";
-import { getCommuneByProvince } from "@/app/api/commune";
-import { getPersonnelByProvince } from "@/app/api/Personnel";
-import { getMilieuImplantation } from "@/app/api/MilieuImplantation";
-import { getTypeCentre } from "@/app/api/TypeCentre";
-import { getProprieteDuCentres } from "@/app/api/ProprieteDuCentre";
 import { api } from "@/app/api";
 import { getCurrentUser } from "@/app/api/index";
 import { UserInfo } from "@/app/type/UserInfo";
@@ -46,25 +40,13 @@ import { getCentres } from "@/app/api/centre";
 
 
 const formSchema = z.object({
-    anneeFacture: z.string().min(2, {
-    message: "L'année.",
-  }),
-  moisFacture: z.string().min(2, {
-    message: "Le mois.",
-  }),
+    
     eau: z.number().positive({ message: "Eau." }),
-    ConsEau: z.number().positive({ message: "La consommation d'eau." }),
+    consEau: z.number().positive({ message: "La consommation d'eau." }),
     electricite: z.number().positive({ message: "Electricité." }),
     consElect: z.number().positive({ message: "La consommation d'électricité." }),
     total: z.number().positive({ message: "Le total." }),
-
     datefacture: z.string().optional(),
-    
-  
-  
-  centre: z.object({ id: z.number() }).refine((value) => value.id > 0, {
-    message: "Veuillez sélectionner un centre.",
-  }),
   
   
 });
@@ -72,10 +54,10 @@ const formSchema = z.object({
 interface AddFactureProps {
   isUpdate?: boolean;
   factureId?: number | null;
-  centre?: number | null;
+  centreId?: number | null;
 }
 
-export function AddFacture({ isUpdate = false, factureId = null, centre = null }: AddFactureProps) {
+export function AddFacture({ isUpdate = false, factureId = null, centreId = null }: AddFactureProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [user, setUser] = useState<UserInfo | null>(null);
@@ -90,32 +72,34 @@ export function AddFacture({ isUpdate = false, factureId = null, centre = null }
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        anneeFacture: "",
-        moisFacture: "",
         eau: 0,
-        ConsEau:0,
+        consEau:0,
         electricite: 0,
         consElect: 0,
         total: 0,
         datefacture: "",
-        centre: { id: 0 },
     },
   });
 
   
   useEffect(() => {
     
-    if (isUpdate && factureId && centre) {
+    if (isUpdate && factureId && centreId) {
       // Fetch the existing centre data and populate the form
       const fetchFactureData = async () => {
-        const response = await api.get(`/facture/${factureId}`);
+        const response = await api.get(`/factures/${factureId}`);
         Object.keys(response.data).forEach((key) => {
           form.setValue(key as any, response.data[key]);
         });
       };
       fetchFactureData();
     }
-  }, [isUpdate, factureId,centre, form]);
+  }, [isUpdate, factureId,centreId, form]);
+  useEffect(() => {
+    const { eau,  electricite } = form.getValues();
+    const calculatedTotal = eau + electricite ; // Adjust the calculation if needed
+    form.setValue("total", calculatedTotal);
+  }, [form.watch("eau"), form.watch("electricite")]);
 
   const { data: centres } = useQuery("centres", getCentres);
 
@@ -125,9 +109,10 @@ export function AddFacture({ isUpdate = false, factureId = null, centre = null }
   
   
   async function onSubmit(values: z.infer<typeof formSchema>) {
+
     try {
       if (isUpdate && factureId) {
-        await api.put(`/facture/${factureId}`, values);
+        await api.put(`/factures/${factureId}`, values);
         toast({
           description: "Le centre a été mis à jour avec succès.",
           className: "bg-green-500 text-white",
@@ -135,7 +120,7 @@ export function AddFacture({ isUpdate = false, factureId = null, centre = null }
           title: "Succès",
         });
       } else {
-        await api.post(`/facture/add`, values);
+        await api.post(`/factures/${centreId}`,{ ...values, centreId });
         toast({
           description: "La facture a été ajouté avec succès.",
           className: "bg-green-500 text-white",
@@ -143,7 +128,7 @@ export function AddFacture({ isUpdate = false, factureId = null, centre = null }
           title: "Succès",
         });
       }
-      router.push("/factures");
+      router.push(`/centres/${centreId}/facture`);
     } catch (error) {
       console.error("Erreur:", error);
       toast({
@@ -168,30 +153,7 @@ export function AddFacture({ isUpdate = false, factureId = null, centre = null }
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FormField
-                control={form.control}
-                name="centre"
-                render={({ field }) => (
-                <FormItem>
-                <FormLabel>Centre</FormLabel>
-                <Select onValueChange={(value) => field.onChange({ id: parseInt(value, 10) })}>
-                <FormControl>
-                <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionnez un centre" />
-                </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    {centres?.map((centre) => (
-                <SelectItem key={centre.id} value={centre?.id?.toString() || ""}>
-                {centre.nomFr}
-                </SelectItem>
-                ))}
-                </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-                )}
-                />
+              
                 <FormField
               control={form.control}
               name="datefacture"
@@ -224,7 +186,7 @@ export function AddFacture({ isUpdate = false, factureId = null, centre = null }
 />
 <FormField
 control={form.control}
-  name="ConsEau"
+  name="consEau"
   render={({ field }) => (
     <FormItem>
       <FormLabel>Consommation de l'eau</FormLabel>

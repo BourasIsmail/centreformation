@@ -91,6 +91,9 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
       queryKey: "provinces",
       queryFn: getAllProvinces,
     });
+
+    const provinceId = form.watch("province.id");
+
     useEffect(() => {
         
         if (isUpdate && personnelId) {
@@ -105,10 +108,10 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
         }
       }, [isUpdate, personnelId, form]);
       
-    const { data: communes } = useQuery({
-        queryKey: ["commune", form.watch("province.id")],
-        queryFn: () => getCommuneByProvince(form.watch("province.id")),
-        enabled: !!form.watch("province.id"),
+    const { data: communes , refetch: refetchCommunes} = useQuery({
+        queryKey: ["commune", provinceId],
+        queryFn: () => getCommuneByProvince(provinceId),
+        enabled: !!provinceId,
       });
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -228,6 +231,7 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
                                                     const selectedProvince = provinces?.find((p) => p.id === Number.parseInt(value))
                                                     if (selectedProvince) {
                                                         field.onChange({ id: selectedProvince.id })
+                                                        refetchCommunes()
                                                     }
                                                 }}
                                             >

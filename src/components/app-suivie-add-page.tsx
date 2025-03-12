@@ -25,22 +25,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { api } from "@/app/api";
 
 import { getCentres } from "@/app/api/centre";
 import { getbeneficiaireById } from "@/app/api/Beneficiaire";
 import { getActiviteByCentre, getactiviteById, getActivites } from "@/app/api/Activite";
-import { getFiliereByActivite, getFilieresByTypeActivite } from "@/app/api/Filiere";
+import { getFilieresByTypeActivite } from "@/app/api/Filiere";
 
 const formSchema = z.object({
   beneficiaire: z.object({ id: z.number() }),
   filiere: z.object({ id: z.number() }).refine((value) => value.id > 0, {
     message: "Veuillez sélectionner une filiere.",
   }),
-  activite: z.object({ id: z.number()
-  }).refine((value) => value.id > 0, {
+  activite: z.object({ id: z.number() }).refine((value) => value.id > 0, {
     message: "Veuillez sélectionner une activité.",
   }),
   centre: z.object({ id: z.number() }).refine((value) => value.id > 0, {
@@ -54,14 +53,22 @@ const formSchema = z.object({
   }),
   observation: z.string().optional(),
 });
-
-export function AddSuiviePage({ benef }: { benef: number }) {
+interface AddSuivieProps {
+  isUpdate?: boolean;
+  suivieId?: number | null;
+  beneficiaireId?: number | null;
+}
+export function AddSuiviePage({ isUpdate = false, suivieId = null, beneficiaireId = null }: AddSuivieProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { data: beneficiaire } = useQuery(
+    ["beneficiaire", beneficiaireId],
+    () => (beneficiaireId ? getbeneficiaireById(beneficiaireId) : Promise.resolve(null)),
+    { enabled: !!beneficiaireId }
+  );
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      beneficiaire:{ id: 0},
       filiere: { id: 0},
       activite: { id: 0},
       centre: { id: 0},
@@ -73,31 +80,45 @@ export function AddSuiviePage({ benef }: { benef: number }) {
 
   
 
-const { data: filieres } = useQuery({
-  queryKey: ["filiere", form.watch("activite.id")],
-  queryFn: () => getFiliereByActivite(form.watch("activite.id")),
-  enabled: !!form.watch("activite.id"),
-});
-  const { data: activites } = useQuery({
+  const { data: filieres , refetch : refetchFilieres} = useQuery({
+    queryKey: ["filiere", form.watch("activite.id")],
+    queryFn: async () => {
+      const activite = await getactiviteById(form.watch("activite.id")); // Récupérer l'activité sélectionnée
+      return getFilieresByTypeActivite(activite?.typeActivite?.id!); // Utiliser son typeActivite
+    },
+    enabled: !!form.watch("activite.id"),
+  });
+  const { data: activites ,refetch: refetchActivites} = useQuery({
     queryKey: ["activite", form.watch("centre.id")],
     queryFn: () => getActiviteByCentre(form.watch("centre.id")),
     enabled: !!form.watch("centre.id"),
   });
   const { data: centres } = useQuery("centres", getCentres);
-  const { data: beneficiaire } = useQuery(["beneficiaire", benef],
-    () => getbeneficiaireById(benef));
+  
    
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+
     try {
-      await api.post(`/Suivie`, { ...values, beneficiaire: { id: benef } });
-      toast({
-        title: "Succès",
-        description: "Le suivi a été ajouté avec succès.",
-        className: "bg-green-500 text-white",
-        duration: 3000,
-      });
-      router.push("/Suivie");
+          
+          if (isUpdate && suivieId) {
+            await api.put(`/suivies/${suivieId}`, values);
+            toast({
+              description: "Le centre a été mis à jour avec succès.",
+              className: "bg-green-500 text-white",
+              duration: 3000,
+              title: "Succès",
+            });
+          } else {
+            await api.post(`/suivies/${beneficiaireId}`, { ...values, beneficiaireId } );
+            toast({
+              description: "La facture a été ajouté avec succès.",
+              className: "bg-green-500 text-white",
+              duration: 3000,
+              title: "Succès",
+            });
+          }
+      router.push(`/beneficiaire/${beneficiaireId}/suivie`);
     } catch (error) {
       console.error("Erreur:", error);
       toast({
@@ -111,10 +132,14 @@ const { data: filieres } = useQuery({
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Ajouter un Suivi</CardTitle>
-      </CardHeader>
+          <CardTitle>{isUpdate ? "Mettre à jour le suivie" : "Ajouter un suivie"}</CardTitle>
+          <CardDescription>
+            Remplissez le formulaire pour {isUpdate ? "mettre à jour le suivie" : "ajouter un facture"}.
+          </CardDescription>      
+          </CardHeader>
       <CardContent>
         <Form {...form}>
+          
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -122,36 +147,54 @@ const { data: filieres } = useQuery({
                 <p className="text-lg font-semibold">{beneficiaire?.prenom} {beneficiaire?.nom}</p>
                 </div>
                 <FormField
-                control={form.control}
-                name="centre"
-                render={({ field }) => (
-                <FormItem>
-                <FormLabel>Centre</FormLabel>
-                <Select onValueChange={(value) => field.onChange({ id: parseInt(value, 10) })}>
-                <FormControl>
-                <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionnez un centre" />
-                </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    {centres?.map((centre) => (
-                <SelectItem key={centre.id} value={centre?.id?.toString() || ""}>
-                {centre.nomFr}
-                </SelectItem>
-                ))}
-                </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-                )}
-                />
+                                    control={form.control}
+                                    name="centre"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Centre</FormLabel>
+                                            <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
+                                                onValueChange={(value) => {
+                                                    const selectedCentre = centres?.find((p) => p.id === Number(value));
+                                                    if (selectedCentre) {
+                                                        field.onChange(selectedCentre);
+                                                        refetchActivites();
+                                                    }
+                                                }}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionner un centre" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {centres?.map((centre) => (
+                                                        <SelectItem key={centre.id} value={centre.id?.toString() ?? ""}>
+                                                            {centre.nomFr}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                 <FormField
                 control={form.control}
                 name="activite"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Activité</FormLabel>
-                    <Select onValueChange={(value) => field.onChange({ id: parseInt(value, 10) })}>
+                    <Select 
+                    value={field.value?.id ? field.value.id.toString() : ""}
+                    onValueChange={(value) => {
+                      const selectedActivite = activites?.find((p) => p.id === parseInt(value));
+                      if (selectedActivite) {
+                        field.onChange({ id: selectedActivite.id });
+                        refetchFilieres();
+                      }
+                    }}
+                    >
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionnez une activité" />
@@ -245,9 +288,8 @@ const { data: filieres } = useQuery({
                 )}
             />
             </div>
-            <Button type="submit" className="w-full">
-              Ajouter
-            </Button>
+            <Button type="submit">{isUpdate ? "Mettre à jour le suivie" : "Ajouter un suivie"}</Button>
+            
           </form>
         </Form>
       </CardContent>

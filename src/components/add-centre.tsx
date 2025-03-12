@@ -68,6 +68,8 @@ const formSchema = z.object({
         message: "Numéro de téléphone fixe invalide.",
     }),
     internet: z.string().min(2, { message: "Veuillez spécifier l'état de la connexion internet." }),
+    possession: z.string().min(2, { message: "Veuillez spécifier la possession." }),
+    montantAllocation: z.number().nonnegative({ message: "Le montant doit être un nombre positif ou zéro." }),
     nbrPC: z.number().int().nonnegative({
         message: "Le nombre de PC doit être un entier positif ou zéro.",
     }),
@@ -96,6 +98,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
     const { toast } = useToast()
     const router = useRouter()
     const [user, setUser] = useState<UserInfo | null>(null)
+
     useEffect(() => {
         const fetchUser = async () => {
             const currentUser = await getCurrentUser()
@@ -125,6 +128,8 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             electricite: "",
             telephoneFixe: "",
             internet: "",
+            possession: "",
+            montantAllocation: 0,
             nbrPC: 0,
             nbrImprimante: 0,
             nbrPersonneConnaissanceInfo: 0,
@@ -136,6 +141,8 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             longitude: 0,
         },
     })
+    const possessionValue = form.watch("possession"); // Watch the "possession" field
+    const provinceId = form.watch("province.id");
 
     useEffect(() => {
         if (user?.province && user?.roles === "ADMIN_ROLES") {
@@ -151,7 +158,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
         if (isUpdate && centreId) {
             // Fetch the existing centre data and populate the form
             const fetchCentreData = async () => {
-                const response = await api.get(`/centre/${centreId}`)
+                const response = await api.get(`/centres/${centreId}`)
                 Object.keys(response.data).forEach((key) => {
                     form.setValue(key as any, response.data[key])
                 })
@@ -159,7 +166,8 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             fetchCentreData()
         }
     }, [isUpdate, centreId, form])
-
+    
+    
     const { data: provinces } = useQuery({
         queryKey: "provinces",
         queryFn: getAllProvinces,
@@ -170,16 +178,16 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
         queryFn: getProprieteDuCentres,
     })
 
-    const { data: communes } = useQuery({
-        queryKey: ["commune", form.watch("province.id")],
-        queryFn: () => getCommuneByProvince(form.watch("province.id")),
-        enabled: !!form.watch("province.id"),
+    const { data: communes , refetch: refetchCommunes } = useQuery({
+        queryKey: ["commune", provinceId],
+        queryFn: () => getCommuneByProvince(provinceId),
+        enabled: !!provinceId,
     })
 
-    const { data: personnels } = useQuery({
-        queryKey: ["responsable", form.watch("province.id")],
-        queryFn: () => getPersonnelByProvince(form.watch("province.id")),
-        enabled: !!form.watch("province.id"),
+    const { data: personnels , refetch: refetchPersonnels } = useQuery({
+        queryKey: ["responsable", provinceId],
+        queryFn: () => getPersonnelByProvince(provinceId),
+        enabled: !!provinceId,
     })
 
     const { data: milieuImplantation } = useQuery({
@@ -191,7 +199,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
         queryKey: "typeCentre",
         queryFn: getTypeCentre,
     })
-
+    
     const handleMapClick = React.useCallback(
         (lat: number, lng: number) => {
             form.setValue("latitude", lat)
@@ -204,7 +212,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
             if (isUpdate && centreId) {
-                await api.put(`/centre/${centreId}`, values)
+                await api.put(`/centres/${centreId}`, values)
                 toast({
                     description: "Le centre a été mis à jour avec succès.",
                     className: "bg-green-500 text-white",
@@ -212,7 +220,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                     title: "Succès",
                 })
             } else {
-                await api.post(`/centre/add`, values)
+                await api.post(`/centres`, values)
                 toast({
                     description: "Le centre a été ajouté avec succès.",
                     className: "bg-green-500 text-white",
@@ -352,37 +360,40 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {user?.roles === "SUPER_ADMIN_ROLES" && (
                                     <FormField
-                                    control={form.control}
-                                    name="province"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Province</FormLabel>
-                                            <Select
-                                                value={field.value?.id ? field.value.id.toString() : ""}
-                                                onValueChange={(value) => {
-                                                    const selectedProvince = provinces?.find((p) => p.id === Number.parseInt(value))
-                                                    if (selectedProvince) {
-                                                        field.onChange({ id: selectedProvince.id })
-                                                    }
-                                                }}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Sélectionnez une province" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {provinces?.map((province) => (
-                                                        <SelectItem key={province.id} value={province.id?.toString() ?? ""}>
-                                                            {province.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+  control={form.control}
+  name="province"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Province</FormLabel>
+      <Select
+        value={field.value?.id ? field.value.id.toString() : ""}
+        onValueChange={(value) => {
+          const selectedProvince = provinces?.find((p) => p.id === Number(value));
+          if (selectedProvince) {
+            field.onChange({ id: selectedProvince.id });
+            refetchCommunes();
+            refetchPersonnels();
+            }
+        }}
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionnez une province" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          {provinces?.map((province) => (
+            <SelectItem key={province.id} value={province.id?.toString() ?? ""}>
+              {province.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
                                     
                                 )}
                                 {user?.roles === "ADMIN_ROLES" && (
@@ -612,6 +623,52 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
+
+<FormField
+  control={form.control}
+  name="possession" 
+  render={({ field }) => (
+    <FormItem className="col-span-1">
+      <FormLabel>Possession</FormLabel> 
+      <Select
+        onValueChange={field.onChange}
+        value={field.value ?? ""} // Ensure value is never undefined
+      >
+        <FormControl>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Sélectionnez la possession" /> 
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          <SelectItem value="Entraide">Entraide</SelectItem> 
+          <SelectItem value="loye">Loyé</SelectItem> 
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
+{/* Show "Montant d'allocation" only if possession === "Entraide" */}
+{possessionValue === "loye" && (
+  <FormField
+    control={form.control}
+    name="montantAllocation"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Montant d'allocation</FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            {...field}
+            onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)}
                                 <FormField
                                     control={form.control}
                                     name="nbrPC"

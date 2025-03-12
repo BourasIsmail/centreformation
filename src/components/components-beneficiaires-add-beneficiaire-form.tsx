@@ -52,9 +52,9 @@ const formSchema = z.object({
   dateNaissance: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
     message: "La date doit être au format YYYY-MM-DD.",
   }),
-  sexe: z.enum(["M", "F"], {
-    required_error: "Veuillez sélectionner un sexe.",
-  }),
+  sexe: z.string().min(1, {
+      message: "Veuillez sélectionner un grade.",
+    }),
   cin: z.string().min(6, {
     message: "Le CIN doit contenir au moins 6 caractères.",
   }),
@@ -112,28 +112,20 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
       prenom: "",
       adresse: "",
       dateNaissance: "",
-      sexe: undefined,
+      sexe: "",
       cin: "",
       telephone: "",
       commune: { id: 0 },
-      suivies: [
-        {
-          filiere: { id: 0 },
-          activite: { id: 0 },
-          centre: { id: 0 },
-          etatDeFormation: "",
-          dateEffet: "",
-          observation: "",
-        }
-      ],
+      
     },
   });
+
   useEffect(() => {
         
     if (isUpdate && beneficiaireId) {
       // Fetch the existing centre data and populate the form
       const fetchBeneficiaireData = async () => {
-        const response = await api.get(`/beneficiaire/${beneficiaireId}`);
+        const response = await api.get(`/beneficiaires/${beneficiaireId}`);
         Object.keys(response.data).forEach((key) => {
           form.setValue(key as any, response.data[key]);
         });
@@ -144,7 +136,7 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (isUpdate && beneficiaireId) {
-              await api.put(`/beneficiaire/${beneficiaireId}`, values);
+              await api.put(`/beneficiaires/${beneficiaireId}`, values);
               toast({
                 description: "Le beneficiaire a été mis à jour avec succès.",
                 className: "bg-green-500 text-white",
@@ -152,7 +144,7 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
                 title: "Succès",
               });
             } else {
-              await api.post(`/beneficiaire/add`, values);
+              await api.post(`/beneficiaires`, values);
               toast({
                 description: "Le beneficiaire a été ajouté avec succès.",
                 className: "bg-green-500 text-white",
@@ -171,6 +163,7 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
       });
     }
   }
+  const provinceId = form.watch("province.id");
 
   useEffect(() => {
       if (user?.province && user?.roles === "ADMIN_ROLES") {
@@ -186,13 +179,13 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
       queryFn: getAllProvinces,
     });
 
-  const { data: communes } = useQuery({
-      queryKey: ["commune", form.watch("province.id")],
-      queryFn: () => getCommuneByProvince(form.watch("province.id")),
-      enabled: !!form.watch("province.id"),
+  const { data: communes ,refetch : refetchCommunes} = useQuery({
+      queryKey: ["commune", provinceId],
+      queryFn: () => getCommuneByProvince(provinceId),
+      enabled: !!provinceId,
     });
   
-  const { data: filieres } = useQuery({
+  const { data: filieres , refetch : refetchFilieres} = useQuery({
     queryKey: ["filiere", form.watch("suivies.0.activite.id")],
     queryFn: async () => {
       const activite = await getactiviteById(form.watch("suivies.0.activite.id")); // Récupérer l'activité sélectionnée
@@ -200,15 +193,15 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
     },
     enabled: !!form.watch("suivies.0.activite.id"),
   });
-    const { data: activites } = useQuery({
+    const { data: activites , refetch : refetchActivites} = useQuery({
       queryKey: ["activite", form.watch("suivies.0.centre.id")],
       queryFn: () => getActiviteByCentre(form.watch("suivies.0.centre.id")),
       enabled: !!form.watch("suivies.0.centre.id"),
     });
-    const { data: centres } = useQuery({
-      queryKey: ["centres", form.watch("province.id")],
-      queryFn: () => getCentreByProvince(form.watch("province.id")),
-      enabled: !!form.watch("province.id"),
+    const { data: centres , refetch: refetchCentres} = useQuery({
+      queryKey: ["centres", provinceId],
+      queryFn: () => getCentreByProvince(provinceId),
+      enabled: !!provinceId,
     });
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -361,6 +354,9 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
                                                      const selectedProvince = provinces?.find((p) => p.id === Number.parseInt(value))
                                                      if (selectedProvince) {
                                                          field.onChange({ id: selectedProvince.id })
+                                                          refetchCommunes();
+                                                          refetchCentres();
+                                                          
                                                      }
                                                  }}
                                              >
@@ -420,154 +416,10 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
-                                    control={form.control}
-                                    name="suivies.0.centre"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Centre</FormLabel>
-                                            <Select
-                                                value={field.value?.id ? field.value.id.toString() : ""}
-                                                onValueChange={(value) => {
-                                                    const selectedCentre = centres?.find((p) => p.id === Number(value));
-                                                    if (selectedCentre) {
-                                                        field.onChange(selectedCentre);
-                                                    }
-                                                }}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Sélectionner un centre" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {centres?.map((centre) => (
-                                                        <SelectItem key={centre.id} value={centre.id?.toString() ?? ""}>
-                                                            {centre.nomFr}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                
-                <FormField
-                control={form.control}
-                name="suivies.0.activite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Activité</FormLabel>
-                    <Select 
-                    value={field.value?.id ? field.value.id.toString() : ""}
-                    onValueChange={(value) => {
-                      const selectedActivite = activites?.find((p) => p.id === parseInt(value));
-                      if (selectedActivite) {
-                        field.onChange({ id: selectedActivite.id });
-                      }
-                    }}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionnez une activité" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {activites?.map((activite) => (
-                          <SelectItem key={activite.id} value={activite?.id?.toString() || ""}>
-                            {activite.nom}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="suivies.0.filiere"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Filière</FormLabel>
-                    <Select 
-                    value={field.value?.id ? field.value.id.toString() : ""}
-                    onValueChange={(value) => {
-                      const selectedFiliere = filieres?.find((p) => p.id === parseInt(value));
-                      if (selectedFiliere) {
-                        field.onChange({ id: selectedFiliere.id });
-                      }
-                    }}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionnez une filière" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {filieres?.map((filiere) => (
-                          <SelectItem key={filiere.id} value={filiere?.id?.toString() || ""}>
-                            {filiere.nom}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                                    
+                 
+                        
               
-              <FormField
-              control={form.control}
-              name="suivies.0.etatDeFormation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>État de Formation</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un état" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="en cours">En cours</SelectItem>
-                      <SelectItem value="terminé">Terminé</SelectItem>
-                      <SelectItem value="abandonné">Abandonné</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="suivies.0.dateEffet"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date Effet</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField control={form.control} name="suivies.0.observation" render={({ field }) => (
-                <FormItem>
-                <FormLabel>Observation</FormLabel>
-                <FormControl>
-                <textarea
-                 placeholder="Observation"
-                rows={4} 
-                className="w-full border rounded-md p-2"
-                {...field}
-                />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-                )}
-            />
             </div>
             <Button type="submit">{isUpdate ? "Mettre à jour le beneficiaire" : "Ajouter le beneficiaire"}</Button>
           </form>

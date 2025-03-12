@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSuivieByBenef } from "@/app/api/suivie";
+import { SuiviesByBeneficiaire } from "@/app/api/suivie";
 import { Suivie } from "@/app/type/Suivie";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "./ui/table";
@@ -11,8 +11,7 @@ import router from "next/router";
 import Link from "next/link";
 
 
-
-export function SuiviePage({ benef }: { benef: number }) {
+export function SuiviePage( { beneficiaireId }: { beneficiaireId: number }) {
   const [suivieData, setSuivieData] = useState<Suivie[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +20,7 @@ export function SuiviePage({ benef }: { benef: number }) {
     const fetchSuivie = async () => {
       try {
         setLoading(true);
-        const data = await getSuivieByBenef(benef);
+        const data = await SuiviesByBeneficiaire(beneficiaireId);
         setSuivieData(data);
       } catch (err) {
         setError("Erreur lors de la récupération des données.");
@@ -30,13 +29,13 @@ export function SuiviePage({ benef }: { benef: number }) {
       }
     };
     fetchSuivie();
-  }, [benef]);
+  }, [beneficiaireId]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Suivi des bénéficiaires</CardTitle>
-        <Link href={`/suivie/${benef}/ajouter`}>
+        <Link href={`/beneficiaire/${beneficiaireId}/suivie/ajouter`}>
           <Button className="ml-auto">
             <a>Ajouter un Suivi</a>
           </Button>
@@ -55,7 +54,7 @@ export function SuiviePage({ benef }: { benef: number }) {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>Bénéficiaire</TableHead>
+                  
                   <TableHead>Filière</TableHead>
                   <TableHead>État de Formation</TableHead>
                   <TableHead>Date Effet</TableHead>
@@ -66,9 +65,7 @@ export function SuiviePage({ benef }: { benef: number }) {
                 {suivieData.map((suivie) => (
                   <TableRow key={suivie.id}>
                     <TableCell>{suivie.id}</TableCell>
-                    <TableCell>
-                      {suivie.beneficiaire?.nom} {suivie.beneficiaire?.prenom}
-                    </TableCell>
+                    
                     <TableCell>{suivie.filiere?.nom}</TableCell>
                     <TableCell>
                       <span

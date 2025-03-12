@@ -1,165 +1,71 @@
 "use client"
 
-import { Bar, BarChart, ResponsiveContainer } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
-import { PieChart, Pie, Cell } from "recharts"
 
-const subscriptionData = [
-  { month: "Jan", total: 1500 },
-  { month: "Feb", total: 2300 },
-  { month: "Mar", total: 1800 },
-  { month: "Apr", total: 2400 },
-  { month: "May", total: 2100 },
-  { month: "Jun", total: 2800 },
-  { month: "Jul", total: 3200 },
-  { month: "Aug", total: 2700 },
-]
+import { useQuery } from "react-query"
+import axios from "axios"
+import { Activity, Building, UserCheck, Users } from "lucide-react"
+import { api } from "@/app/api"
 
-const pieData1 = [
-  { name: "Centres", value: 45 },
-  { name: "En cours", value: 55 },
-]
-
-const pieData2 = [
-  { name: "Formateurs", value: 60 },
-  { name: "Disponible", value: 40 },
-]
-
-const pieData3 = [
-  { name: "Formations", value: 75 },
-  { name: "Complétées", value: 25 },
-]
-
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))']
 
 export function Dashboard() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: async () => {
+      const res = await api.get("/api/dashboard/stats");
+      return res.data;
+    },
+  });
+
+  // Fetch trend data
+  const { data: trends } = useQuery({
+    queryKey: ["activitesTrend"],
+    queryFn: async () => {
+      const res = await api.get("/api/dashboard/activites-trend");
+      return res.data;
+    },
+  });
+
+  const statItems = [
+    { key: "centres", label: "Centres", icon: <Building className="w-8 h-8 text-blue-500" /> },
+    { key: "beneficiaires", label: "Bénéficiaires", icon: <Users className="w-8 h-8 text-green-500" /> },
+    { key: "activites", label: "Activités", icon: <Activity className="w-8 h-8 text-orange-500" /> },
+    { key: "personnels", label: "Personnels", icon: <UserCheck className="w-8 h-8 text-purple-500" /> },
+  ];
+
   return (
-    <div className="flex flex-col gap-6 p-8">
-      {/* Platform Definition Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Plateforme de Gestion des Centres de Formation</CardTitle>
-          <CardDescription>
-            Une solution complète pour la gestion et le suivi des centres de formation, des bénéficiaires,
-            et des activités de formation. Notre plateforme facilite la coordination entre les différents
-            acteurs et permet un suivi efficace des programmes de formation.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="p-6 space-y-6">
+      {/* Title */}
+      <h1 className="text-4xl font-bold text-gray-800">Gestion des Centres</h1>
 
-      {/* Pie Charts Section */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Centres</CardTitle>
-            <CardDescription>Distribution des centres actifs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData1}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData1.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Personnels</CardTitle>
-            <CardDescription>Statistiques des Personnels</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData2}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData2.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Formations</CardTitle>
-            <CardDescription>État des formations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData3}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData3.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {isLoading
+          ? "Chargement..."
+          : statItems.map((stat) => (
+              <Card key={stat.key} className="p-4 flex items-center justify-between shadow-lg">
+                <div>
+                  <CardTitle className="text-lg font-semibold">{stat.label}</CardTitle>
+                  <p className="text-2xl font-bold">{stats?.[stat.key] || 0}</p>
+                </div>
+                {stat.icon}
+              </Card>
+            ))}
       </div>
 
-      {/* Bar Chart Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Inscriptions</CardTitle>
-          <div className="flex flex-col">
-            <div className="text-2xl font-bold">+240</div>
-            <div className="text-xs text-muted-foreground">
-              +25% par rapport au mois dernier
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[200px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={subscriptionData}>
-                <Bar
-                  dataKey="total"
-                  fill="hsl(var(--primary))"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Bar Chart */}
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-xl font-bold mb-4">Évolution des Activités par Mois</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={trends}>
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="count" fill="#3b82f6" name="Activités" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
-  )
+  );
 }

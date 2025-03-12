@@ -4,7 +4,7 @@ import { api } from ".";
 
 export async function getCentres(): Promise<Centre[]> {
   const token = getCookie("token");
-  const data = await api.get("/centre/all", {
+  const data = await api.get("/centres", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -13,7 +13,16 @@ export async function getCentres(): Promise<Centre[]> {
 }
 export async function getCentreByProvince(id: number): Promise<Centre[]> {
   const token = getCookie("token");
-  const data = await api.get(`/centre/ByProvince/${id}`, {
+  const data = await api.get(`/centres/Province/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data.data;
+}
+export async function getCentreById(id: number): Promise<Centre[]> {
+  const token = getCookie("token");
+  const data = await api.get(`/centres/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

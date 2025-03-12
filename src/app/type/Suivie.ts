@@ -7,8 +7,8 @@ import { Filiere } from "./Filiere";
 
 export type Suivie = {
   id?: number;
-  beneficiaire?: Beneficiaire;
   filiere?: Filiere;
+  beneficiaireId?: number;
   activite?: Activite;
   centre?: Centre;
   etatDeFormation?: string;

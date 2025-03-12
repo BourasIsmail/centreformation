@@ -11,7 +11,7 @@ export default function FacturePage() {
   
     return (
       <div className="container mx-auto py-10">
-        <AddFacture isUpdate={false} factureId={null} centre={Number(params.id)} />
+        <AddFacture isUpdate={false} factureId={null} centreId={Number(params.id)} />
       </div>
     );
   }

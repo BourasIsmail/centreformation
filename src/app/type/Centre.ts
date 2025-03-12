@@ -1,3 +1,4 @@
+import { CentreFacture } from "./CentreFacture";
 import { Commune } from "./Commune";
 import { MilieuImplantation } from "./MilieuImplantation";
 import { Personnel } from "./Personnel";
@@ -24,6 +25,8 @@ export type Centre = {
   electricite?: string;
   telephoneFixe?: string;
   internet?: string;
+  possession?: string;
+  montantAllocation?: number;
   nbrPC?: number;
   nbrImprimante?: number;
   nbrPersonneConnaissanceInfo?: number;
@@ -33,4 +36,5 @@ export type Centre = {
   observation?: string;
     longitude?: number;
     latitude?: number;
+  factures?: CentreFacture[];
 };

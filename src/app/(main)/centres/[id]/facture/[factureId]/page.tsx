@@ -6,7 +6,7 @@ export default function UpdateFacturePage({ param }: { param: { id: number } }) 
 
   return (
     <div className="container mx-auto py-10">
-      <AddFacture isUpdate={!!factureId} factureId={factureId} centre={Number(param.id)}/>
+      <AddFacture isUpdate={!!factureId} factureId={factureId} centreId={Number(param.id)}/>
     </div>
   );
 }

@@ -58,7 +58,7 @@ const formSchema = z.object({
   superficie: z.number().min(0),
   gestion: z.object({
     id: z.number(),
-    nom: z.string(),
+    
   }),
   partenariat: z.string().optional(),
   dateSignatureConvention: z.string().optional(),
@@ -91,7 +91,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
       responsableActivite: { id: 0, nomComplet: "" },
       capaciteAccueil: 0,
       superficie: 0,
-      gestion: { id: 0, nom: "" },
+      gestion: { id: 0},
       partenariat: "",
       dateSignatureConvention: "",
       centre: { id: 0 },
@@ -102,12 +102,15 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
   const { data: typeActivites } = useQuery<TypeActivite[]>("typeActivite", getTypeActivites);
   const { data: personnel } = useQuery("personnel", getPersonnels);
   const { data: gestions } = useQuery("proprieteDuCentres", getProprieteDuCentres);
-  const { data: centres } = useQuery("centres", getCentres);
- 
-  const { data: filieres } = useQuery<Filiere[]>({
-        queryKey: ["filiere", form.watch("typeActivite.id")],
-        queryFn: () => getFilieresByTypeActivite(form.watch("typeActivite.id")),
-        enabled: !!form.watch("typeActivite.id"),
+  const { data: centre } = useQuery({
+    queryKey: "centre",
+    queryFn: getCentres,
+});  const typeactiviteId = form.watch("typeActivite.id");
+
+  const { data: filieres , refetch: refetchTypeActivite} = useQuery<Filiere[]>({
+        queryKey: ["filiere", typeactiviteId],
+        queryFn: () => getFilieresByTypeActivite(typeactiviteId),
+        enabled: !!typeactiviteId,
       });
   useEffect(() => {
     if (isUpdate && activiteId) {
@@ -197,6 +200,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
           const selectedTypeActivite = typeActivites?.find((p) => p.id === parseInt(value));
           if (selectedTypeActivite) {
             field.onChange({ id: selectedTypeActivite.id});
+            refetchTypeActivite();
             setSelectedTypeActivite(selectedTypeActivite);
           }
         }}
@@ -375,7 +379,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                                             <Select
                                                 value={field.value?.id ? field.value.id.toString() : ""}
                                                 onValueChange={(value) => {
-                                                    const selectedCentre = centres?.find((p) => p.id === Number(value));
+                                                    const selectedCentre = centre?.find((p) => p.id === Number(value));
                                                     if (selectedCentre) {
                                                         field.onChange(selectedCentre);
                                                     }
@@ -387,9 +391,9 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {centres?.map((centre) => (
-                                                        <SelectItem key={centre.id} value={centre.id?.toString() ?? ""}>
-                                                            {centre.nomFr}
+                                                    {centre?.map((centr) => (
+                                                        <SelectItem key={centr.id} value={centr.id?.toString() ?? ""}>
+                                                            {centr.nomFr}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>

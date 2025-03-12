@@ -173,7 +173,7 @@ export const columns: ColumnDef<Beneficiaire>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <Link 
-            href={beneficiaire.id ? `/suivie/${beneficiaire.id}`: `#`}>
+            href={beneficiaire.id ? `/beneficiaire/${beneficiaire.id}/suivie`: `#`}>
             <DropdownMenuItem>historique</DropdownMenuItem>
             </Link>
             
