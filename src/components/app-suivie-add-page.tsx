@@ -35,7 +35,6 @@ import { getActiviteByCentre, getactiviteById, getActivites } from "@/app/api/Ac
 import { getFilieresByTypeActivite } from "@/app/api/Filiere";
 
 const formSchema = z.object({
-  beneficiaire: z.object({ id: z.number() }),
   filiere: z.object({ id: z.number() }).refine((value) => value.id > 0, {
     message: "Veuillez sélectionner une filiere.",
   }),

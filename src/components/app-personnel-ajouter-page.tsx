@@ -74,7 +74,9 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
       nomComplet: "",
       grade: "",
       diplome: "",
+      province: { id: 0 },
       commune: { id: 0 },
+
     },
   });
   useEffect(() => {
@@ -82,8 +84,6 @@ export function AddPersonnel({ isUpdate = false, personnelId = null }: AddPerson
         if (user?.province?.id) {
           form.setValue("province", { id: user.province.id }); // Set province value in the form
         }
-      }else{
-        form.setValue("province", { id: 0 });
       }
     }, [user, form])
 

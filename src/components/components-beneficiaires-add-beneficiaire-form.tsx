@@ -116,7 +116,8 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
       cin: "",
       telephone: "",
       commune: { id: 0 },
-      
+      province: { id: 0 },
+      ...(isUpdate ? {} : { suivies: [{ filiere: { id: 0 }, activite: { id: 0 }, centre: { id: 0 }, etatDeFormation: "", dateEffet: "", observation: "" }] }),
     },
   });
 
@@ -136,7 +137,9 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (isUpdate && beneficiaireId) {
-              await api.put(`/beneficiaires/${beneficiaireId}`, values);
+        const { suivies, ...updateValues } = values;
+
+              await api.put(`/beneficiaires/${beneficiaireId}`, updateValues);
               toast({
                 description: "Le beneficiaire a été mis à jour avec succès.",
                 className: "bg-green-500 text-white",
@@ -170,8 +173,6 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
         if (user?.province?.id) {
           form.setValue("province", { id: user.province.id }); // Set province value in the form
         }
-      }else{
-        form.setValue("province", { id: 0 });
       }
     }, [user, form]);
     const { data: provinces } = useQuery({
@@ -416,8 +417,164 @@ export function AddBeneficiaireFormComponent({ isUpdate = false, beneficiaireId 
                                             </FormItem>
                                         )}
                                     />
-                                    
-                 
+                                    {!isUpdate && (
+                                    <FormField
+                                    control={form.control}
+                                    name="suivies.0.centre"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Centre</FormLabel>
+                                            <Select
+                                                value={field.value?.id ? field.value.id.toString() : ""}
+                                                onValueChange={(value) => {
+                                                    const selectedCentre = centres?.find((p) => p.id === Number(value));
+                                                    if (selectedCentre) {
+                                                        field.onChange(selectedCentre);
+                                                    }
+                                                }}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionner un centre" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {centres?.map((centre) => (
+                                                        <SelectItem key={centre.id} value={centre.id?.toString() ?? ""}>
+                                                            {centre.nomFr}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />)}
+                {!isUpdate && (
+                <FormField
+                control={form.control}
+                name="suivies.0.activite"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Activité</FormLabel>
+                    <Select 
+                    value={field.value?.id ? field.value.id.toString() : ""}
+                    onValueChange={(value) => {
+                      const selectedActivite = activites?.find((p) => p.id === parseInt(value));
+                      if (selectedActivite) {
+                        field.onChange({ id: selectedActivite.id });
+                      }
+                    }}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionnez une activité" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {activites?.map((activite) => (
+                          <SelectItem key={activite.id} value={activite?.id?.toString() || ""}>
+                            {activite.nom}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                )}
+                {!isUpdate && (
+              <FormField
+                control={form.control}
+                name="suivies.0.filiere"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Filière</FormLabel>
+                    <Select 
+                    value={field.value?.id ? field.value.id.toString() : ""}
+                    onValueChange={(value) => {
+                      const selectedFiliere = filieres?.find((p) => p.id === parseInt(value));
+                      if (selectedFiliere) {
+                        field.onChange({ id: selectedFiliere.id });
+                      }
+                    }}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionnez une filière" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {filieres?.map((filiere) => (
+                          <SelectItem key={filiere.id} value={filiere?.id?.toString() || ""}>
+                            {filiere.nom}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                )}
+                {!isUpdate && (
+              <FormField
+              control={form.control}
+              name="suivies.0.etatDeFormation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>État de Formation</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez un état" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="en cours">En cours</SelectItem>
+                      <SelectItem value="terminé">Terminé</SelectItem>
+                      <SelectItem value="abandonné">Abandonné</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+                )}
+            {!isUpdate && (
+            <FormField
+              control={form.control}
+              name="suivies.0.dateEffet"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date Effet</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+              )}
+              {!isUpdate && (
+            <FormField control={form.control} name="suivies.0.observation" render={({ field }) => (
+                <FormItem>
+                <FormLabel>Observation</FormLabel>
+                <FormControl>
+                <textarea
+                placeholder="Observation"
+                rows={4} 
+                className="w-full border rounded-md p-2"
+                value={field.value} // Ensure value is controlled
+                onChange={field.onChange} // Ensure state updates
+                />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+                )}
+            />
+              )}
                         
               
             </div>

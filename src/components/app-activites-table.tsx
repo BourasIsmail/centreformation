@@ -175,7 +175,7 @@ const columns: ColumnDef<Activite>[] = [
               Copier l'ID de l'activité
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Voir les détails</DropdownMenuItem>
+            
             <DropdownMenuItem onClick={() => router.push(`/activites/${activite.id}`)}>Modifier</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

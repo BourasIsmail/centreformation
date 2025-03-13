@@ -402,7 +402,7 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
                                         </FormItem>
                                     )}
                                 />
-                <FormField
+                <FormField 
   control={form.control}
   name="filieres"
   render={({ field }) => (
@@ -410,28 +410,23 @@ export default function AddActivitePage({ isUpdate = false, activiteId = null }:
       <FormLabel>Filières</FormLabel>
       <FormControl>
         <MultiSelect
-          // Vérifier que "filieres" est bien défini avant de mapper
           options={filieres?.map((filiere) => ({
             label: filiere.nom || "",
             value: filiere.id?.toString() || "",
           })) || []}
 
-          // Vérifier que "field.value" est un tableau avant de mapper
-          value={(field.value || []).map((filiere) => {
-            const selectedFiliere = filieres?.find((f) => f.id === filiere.id);
-            return {
-              label: selectedFiliere?.nom || "",
-              value: filiere.id?.toString() || "",
-            };
-          })}
+          value={(Array.isArray(field.value) ? field.value : []).map((filiere) => ({
+            label: filieres?.find((f) => f.id === filiere.id)?.nom || "",
+            value: filiere.id?.toString() || "",
+          }))}
 
-          // Lors d'un changement, on met à jour "field.value"
           onChange={(selectedOptions) => {
-            field.onChange(
-              selectedOptions.map((option) => ({
-                id: Number(option.value), // Convertir en Number proprement
-              }))
-            );
+            const fullFilieres = selectedOptions.map(option => {
+              const filiere = filieres?.find(f => f.id === parseInt(option.value));
+              return filiere ? { id: filiere.id, nom: filiere.nom, typeActivite: filiere.typeActivite } : null;
+            }).filter(f => f != null);
+            
+            field.onChange(fullFilieres); // Send the full object to the backend
           }}
 
           placeholder="Sélectionner des filières"

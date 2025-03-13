@@ -118,6 +118,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             dateConstruction: "",
             telephone: "",
             commune: { id: 0 },
+            province: { id: 0 },
             adresse: "",
             responsable: { id: 0 },
             milieuImplantation: { id: 0 },
@@ -145,12 +146,11 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
     const provinceId = form.watch("province.id");
 
     useEffect(() => {
+        
         if (user?.province && user?.roles === "ADMIN_ROLES") {
             if (user?.province?.id) {
                 form.setValue("province", { id: user.province.id }) // Set province value in the form
             }
-        } else {
-            form.setValue("province", { id: 0 })
         }
     }, [user, form])
 
