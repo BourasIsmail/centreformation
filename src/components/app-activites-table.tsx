@@ -53,143 +53,10 @@ import { Activite } from "@/app/type/Activite";
 import { getActivites } from "@/app/api/Activite";
 import { useRouter } from "next/navigation";
 
-const columns: ColumnDef<Activite>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Sélectionner tout"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Sélectionner la ligne"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "typeActivite",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Type d'Activité
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.original.typeActivite?.name}</div>,
-  },
-  {
-    accessorKey: "dateOuverture",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Date d'Ouverture
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("dateOuverture")}</div>,
-  },
-  {
-    accessorKey: "responsableActivite",
-    header: "Responsable",
-    cell: ({ row }) => (
-      <div>{row.original.responsableActivite?.nomComplet}</div>
-    ),
-  },
-  {
-    accessorKey: "capaciteAccueil",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Capacité d'Accueil
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("capaciteAccueil")}</div>,
-  },
-  {
-    accessorKey: "superficie",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Superficie (m²)
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("superficie")}</div>,
-  },
-  {
-    accessorKey: "gestion",
-    header: "Gestion",
-    cell: ({ row }) => <div>{row.original.gestion?.nom}</div>,
-  },
-  {
-    accessorKey: "centre",
-    header: "Centre",
-    cell: ({ row }) => <div>{row.original.centre?.nom}</div>,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const activite = row.original;
-      const router = useRouter();
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Ouvrir le menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(activite.id?.toString() || "")
-              }
-            >
-              Copier l'ID de l'activité
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuItem onClick={() => router.push(`/activites/${activite.id}`)}>Modifier</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
-
-const typeActivites = [
-  { id: 1, name: "CEF", count: 0 },
-  { id: 2, name: "CFA", count: 0 },
-];
 
 export function ActiviteTableComponent() {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -199,7 +66,141 @@ export function ActiviteTableComponent() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [typeFilter, setTypeFilter] = React.useState<string[]>([]);
   const [searchValue, setSearchValue] = React.useState("");
-
+  const columns: ColumnDef<Activite>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Sélectionner tout"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Sélectionner la ligne"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "typeActivite",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Type d'Activité
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.original.typeActivite?.name}</div>,
+    },
+    {
+      accessorKey: "dateOuverture",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Date d'Ouverture
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("dateOuverture")}</div>,
+    },
+    {
+      accessorKey: "responsableActivite",
+      header: "Responsable",
+      cell: ({ row }) => (
+        <div>{row.original.responsableActivite?.nomComplet}</div>
+      ),
+    },
+    {
+      accessorKey: "capaciteAccueil",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Capacité d'Accueil
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("capaciteAccueil")}</div>,
+    },
+    {
+      accessorKey: "superficie",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Superficie (m²)
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("superficie")}</div>,
+    },
+    {
+      accessorKey: "gestion",
+      header: "Gestion",
+      cell: ({ row }) => <div>{row.original.gestion?.nom}</div>,
+    },
+    {
+      accessorKey: "centre",
+      header: "Centre",
+      cell: ({ row }) => <div>{row.original.centre?.nom}</div>,
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const activite = row.original;
+        
+  
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Ouvrir le menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigator.clipboard.writeText(activite.id?.toString() || "")
+                }
+              >
+                Copier l'ID de l'activité
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={() => router.push(`/activites/${activite.id}`)}>Modifier</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+  
+  const typeActivites = [
+    { id: 1, name: "CEF", count: 0 },
+    { id: 2, name: "CFA", count: 0 },
+  ];
   const {
     data: activites,
     isLoading,

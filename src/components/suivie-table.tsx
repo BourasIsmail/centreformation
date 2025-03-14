@@ -11,7 +11,7 @@ import router from "next/router";
 import Link from "next/link";
 
 
-export function SuiviePage( { beneficiaireId }: { beneficiaireId: number }) {
+export function SuiviePage({ beneficiaireId }: { beneficiaireId: number }) {
   const [suivieData, setSuivieData] = useState<Suivie[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

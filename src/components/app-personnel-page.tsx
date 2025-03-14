@@ -59,146 +59,148 @@ import { UserInfo } from "@/app/type/UserInfo";
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "@/app/api/index";
 import { useRouter } from "next/navigation";
-const grades = [
-  { value: "Grade 1", label: "Grade 1", color: "bg-blue-200 text-blue-800" },
-  { value: "Grade 2", label: "Grade 2", color: "bg-green-200 text-green-800" },
-  {
-    value: "Grade 3",
-    label: "Grade 3",
-    color: "bg-yellow-200 text-yellow-800",
-  },
-];
 
-const diplomes = [
-  {
-    value: "Baccalauréat",
-    label: "Baccalauréat",
-    color: "bg-purple-200 text-purple-800",
-  },
-  {
-    value: "Licence",
-    label: "Licence",
-    color: "bg-indigo-200 text-indigo-800",
-  },
-  { value: "Master", label: "Master", color: "bg-pink-200 text-pink-800" },
-  { value: "Doctorat", label: "Doctorat", color: "bg-red-200 text-red-800" },
-];
-
-export const columns: ColumnDef<Personnel>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Sélectionner tout"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Sélectionner la ligne"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "nomComplet",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Nom Complet
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("nomComplet")}</div>,
-  },
-  {
-    accessorKey: "grade",
-    header: "Grade",
-    cell: ({ row }) => {
-      const grade = row.getValue("grade") as string;
-      const status = grades.find((s) => s.value === grade);
-      return (
-        <Badge
-          className={`font-normal ${
-            status?.color || "bg-gray-200 text-gray-800"
-          }`}
-        >
-          {grade}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "diplome",
-    header: "Diplôme",
-    cell: ({ row }) => {
-      const diplome = row.getValue("diplome") as string;
-      const status = diplomes.find((s) => s.value === diplome);
-      return (
-        <Badge
-          className={`font-normal ${
-            status?.color || "bg-gray-200 text-gray-800"
-          }`}
-        >
-          {diplome}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "province",
-    header: "Province",
-    cell: ({ row }) => {
-      const province = row.original.province;
-      return province?.name || "N/A";
-    },
-  },
-  {
-    accessorKey: "commune",
-    header: "Commune",
-    cell: ({ row }) => {
-      const commune = row.original.commune;
-      return commune?.name || "N/A";
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const personnel = row.original;
-      const router = useRouter();
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Ouvrir le menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => router.push(`/personnels/${personnel.id}`)}>Modifier</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Supprimer
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
 
 export function PersonnelTableComponent() {
+  const router = useRouter();
+  const grades = [
+    { value: "Grade 1", label: "Grade 1", color: "bg-blue-200 text-blue-800" },
+    { value: "Grade 2", label: "Grade 2", color: "bg-green-200 text-green-800" },
+    {
+      value: "Grade 3",
+      label: "Grade 3",
+      color: "bg-yellow-200 text-yellow-800",
+    },
+  ];
+  
+  const diplomes = [
+    {
+      value: "Baccalauréat",
+      label: "Baccalauréat",
+      color: "bg-purple-200 text-purple-800",
+    },
+    {
+      value: "Licence",
+      label: "Licence",
+      color: "bg-indigo-200 text-indigo-800",
+    },
+    { value: "Master", label: "Master", color: "bg-pink-200 text-pink-800" },
+    { value: "Doctorat", label: "Doctorat", color: "bg-red-200 text-red-800" },
+  ];
+  
+  const columns: ColumnDef<Personnel>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Sélectionner tout"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Sélectionner la ligne"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "nomComplet",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Nom Complet
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("nomComplet")}</div>,
+    },
+    {
+      accessorKey: "grade",
+      header: "Grade",
+      cell: ({ row }) => {
+        const grade = row.getValue("grade") as string;
+        const status = grades.find((s) => s.value === grade);
+        return (
+          <Badge
+            className={`font-normal ${
+              status?.color || "bg-gray-200 text-gray-800"
+            }`}
+          >
+            {grade}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "diplome",
+      header: "Diplôme",
+      cell: ({ row }) => {
+        const diplome = row.getValue("diplome") as string;
+        const status = diplomes.find((s) => s.value === diplome);
+        return (
+          <Badge
+            className={`font-normal ${
+              status?.color || "bg-gray-200 text-gray-800"
+            }`}
+          >
+            {diplome}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "province",
+      header: "Province",
+      cell: ({ row }) => {
+        const province = row.original.province;
+        return province?.name || "N/A";
+      },
+    },
+    {
+      accessorKey: "commune",
+      header: "Commune",
+      cell: ({ row }) => {
+        const commune = row.original.commune;
+        return commune?.name || "N/A";
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const personnel = row.original;
+        
+  
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Ouvrir le menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => router.push(`/personnels/${personnel.id}`)}>Modifier</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

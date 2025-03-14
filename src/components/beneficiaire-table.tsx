@@ -62,135 +62,137 @@ import { useEffect, useState } from "react";
 import { getCurrentUser } from "@/app/api/index";
 import { useRouter } from "next/navigation";
 
-const sexes = [
-  { value: "M", label: "Masculin", color: "bg-blue-200 text-blue-800" },
-  { value: "F", label: "Féminin", color: "bg-pink-200 text-pink-800" },
-];
 
-export const columns: ColumnDef<Beneficiaire>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Sélectionner tout"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Sélectionner la ligne"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "nom",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Nom
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("nom")}</div>,
-  },
-  {
-    accessorKey: "prenom",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Prénom
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("prenom")}</div>,
-  },
-  {
-    accessorKey: "dateNaissance",
-    header: "Date de naissance",
-    cell: ({ row }) => <div>{row.getValue("dateNaissance")}</div>,
-  },
-  {
-    accessorKey: "sexe",
-    header: "Sexe",
-    cell: ({ row }) => {
-      const sexe = sexes.find((s) => s.value === row.getValue("sexe"));
-      return (
-        <Badge
-          className={`font-normal ${
-            sexe?.color || "bg-gray-200 text-gray-800"
-          }`}
-        >
-          {sexe?.label || row.getValue("sexe")}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "cin",
-    header: "CIN",
-    cell: ({ row }) => <div>{row.getValue("cin")}</div>,
-  },
-  {
-    accessorKey: "telephone",
-    header: "Téléphone",
-    cell: ({ row }) => <div>{row.getValue("telephone")}</div>,
-  },
-  {
-    accessorKey: "commune",
-    header: "Commune",
-    cell: ({ row }) => {
-      const commune = row.getValue("commune") as Commune | undefined;
-      return <div>{commune?.name || "N/A"}</div>;
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const beneficiaire = row.original;
-      const router = useRouter();
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Ouvrir le menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <Link 
-            href={beneficiaire.id ? `/beneficiaire/${beneficiaire.id}/suivie`: `#`}>
-            <DropdownMenuItem>historique</DropdownMenuItem>
-            </Link>
-            
-            <DropdownMenuItem onClick={() => router.push(`/beneficiaire/${beneficiaire.id}`)}>Modifier</DropdownMenuItem>
-            
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Supprimer
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
 
 export function BeneficiaireTableComponent() {
+  const router = useRouter();
+  const sexes = [
+    { value: "M", label: "Masculin", color: "bg-blue-200 text-blue-800" },
+    { value: "F", label: "Féminin", color: "bg-pink-200 text-pink-800" },
+  ];
+  
+  const columns: ColumnDef<Beneficiaire>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Sélectionner tout"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Sélectionner la ligne"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "nom",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Nom
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("nom")}</div>,
+    },
+    {
+      accessorKey: "prenom",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Prénom
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("prenom")}</div>,
+    },
+    {
+      accessorKey: "dateNaissance",
+      header: "Date de naissance",
+      cell: ({ row }) => <div>{row.getValue("dateNaissance")}</div>,
+    },
+    {
+      accessorKey: "sexe",
+      header: "Sexe",
+      cell: ({ row }) => {
+        const sexe = sexes.find((s) => s.value === row.getValue("sexe"));
+        return (
+          <Badge
+            className={`font-normal ${
+              sexe?.color || "bg-gray-200 text-gray-800"
+            }`}
+          >
+            {sexe?.label || row.getValue("sexe")}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "cin",
+      header: "CIN",
+      cell: ({ row }) => <div>{row.getValue("cin")}</div>,
+    },
+    {
+      accessorKey: "telephone",
+      header: "Téléphone",
+      cell: ({ row }) => <div>{row.getValue("telephone")}</div>,
+    },
+    {
+      accessorKey: "commune",
+      header: "Commune",
+      cell: ({ row }) => {
+        const commune = row.getValue("commune") as Commune | undefined;
+        return <div>{commune?.name || "N/A"}</div>;
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const beneficiaire = row.original;
+        
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Ouvrir le menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <Link 
+              href={beneficiaire.id ? `/beneficiaire/${beneficiaire.id}/suivie`: `#`}>
+              <DropdownMenuItem>historique</DropdownMenuItem>
+              </Link>
+              
+              <DropdownMenuItem onClick={() => router.push(`/beneficiaire/${beneficiaire.id}`)}>Modifier</DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

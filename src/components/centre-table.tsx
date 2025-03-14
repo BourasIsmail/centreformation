@@ -61,127 +61,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const statuses = [
-  {
-    value: "Bon état",
-    label: "Bon état",
-    color: "bg-green-200 text-green-800",
-  },
-  {
-    value: "Nécessite rénovation",
-    label: "Nécessite rénovation",
-    color: "bg-yellow-200 text-yellow-800",
-  },
-  { value: "Neuf", label: "Neuf", color: "bg-blue-200 text-blue-800" },
-  { value: "Excellent", label: "Excellent", color: "bg-green-500 text-white" },
-];
 
-export const columns: ColumnDef<Centre>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Sélectionner tout"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Sélectionner la ligne"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "nomFr",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Nom
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue("nomFr")}</div>,
-  },
-  {
-    accessorKey: "typeCentre",
-    header: "Type de Centre",
-    cell: ({ row }) => {
-      const typeCentre = row.original.typeCentre;
-      return (
-        <Badge variant="outline" className="font-normal">
-          {typeCentre?.name || "N/A"}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "commune",
-    header: "Commune",
-    cell: ({ row }) => {
-      const commune = row.original.commune;
-      return commune?.name || "N/A";
-    },
-  },
-  {
-    accessorKey: "adresse",
-    header: "Adresse",
-    cell: ({ row }) => <div>{row.getValue("adresse")}</div>,
-  },
-  {
-    accessorKey: "etat",
-    header: "État",
-    cell: ({ row }) => {
-      const etat = row.getValue("etat") as string;
-      const status = statuses.find((s) => s.value === etat);
-      return (
-        <Badge
-          className={`font-normal ${
-            status?.color || "bg-gray-200 text-gray-800"
-          }`}
-        >
-          {etat}
-        </Badge>
-      );
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const centre = row.original;
-      const router = useRouter();
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Ouvrir le menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}/facture`)}>Facture</DropdownMenuItem>
-
-            <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}`)}>Modifier</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Supprimer
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
 
 export function CentreTableComponent() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -195,6 +75,125 @@ export function CentreTableComponent() {
   const [typeCentreFilter, setTypeCentreFilter] = React.useState<string[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
   const router = useRouter();
+  const statuses = [
+    {
+      value: "Bon état",
+      label: "Bon état",
+      color: "bg-green-200 text-green-800",
+    },
+    {
+      value: "Nécessite rénovation",
+      label: "Nécessite rénovation",
+      color: "bg-yellow-200 text-yellow-800",
+    },
+    { value: "Neuf", label: "Neuf", color: "bg-blue-200 text-blue-800" },
+    { value: "Excellent", label: "Excellent", color: "bg-green-500 text-white" },
+  ];
+    const columns: ColumnDef<Centre>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Sélectionner tout"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Sélectionner la ligne"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "nomFr",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Nom
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("nomFr")}</div>,
+    },
+    {
+      accessorKey: "typeCentre",
+      header: "Type de Centre",
+      cell: ({ row }) => {
+        const typeCentre = row.original.typeCentre;
+        return (
+          <Badge variant="outline" className="font-normal">
+            {typeCentre?.name || "N/A"}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "commune",
+      header: "Commune",
+      cell: ({ row }) => {
+        const commune = row.original.commune;
+        return commune?.name || "N/A";
+      },
+    },
+    {
+      accessorKey: "adresse",
+      header: "Adresse",
+      cell: ({ row }) => <div>{row.getValue("adresse")}</div>,
+    },
+    {
+      accessorKey: "etat",
+      header: "État",
+      cell: ({ row }) => {
+        const etat = row.getValue("etat") as string;
+        const status = statuses.find((s) => s.value === etat);
+        return (
+          <Badge
+            className={`font-normal ${
+              status?.color || "bg-gray-200 text-gray-800"
+            }`}
+          >
+            {etat}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const centre = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Ouvrir le menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}/facture`)}>Facture</DropdownMenuItem>
+  
+              <DropdownMenuItem onClick={() => router.push(`/centres/${centre.id}`)}>Modifier</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await getCurrentUser();

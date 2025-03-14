@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -52,17 +52,17 @@ const formSchema = z.object({
   }),
   observation: z.string().optional(),
 });
-interface AddSuivieProps {
+interface AddSuiviePageProps {
   isUpdate?: boolean;
-  suivieId?: number | null;
-  beneficiaireId?: number | null;
+  beneficiaireId: string | null;
+  suivieId: string | null;
 }
-export function AddSuiviePage({ isUpdate = false, suivieId = null, beneficiaireId = null }: AddSuivieProps) {
+export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: AddSuiviePageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { data: beneficiaire } = useQuery(
     ["beneficiaire", beneficiaireId],
-    () => (beneficiaireId ? getbeneficiaireById(beneficiaireId) : Promise.resolve(null)),
+    () => (beneficiaireId ? getbeneficiaireById(Number(beneficiaireId)) : Promise.resolve(null)),
     { enabled: !!beneficiaireId }
   );
   const form = useForm<z.infer<typeof formSchema>>({

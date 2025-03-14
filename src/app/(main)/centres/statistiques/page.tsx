@@ -1,3 +1,4 @@
+"use client";
 import { CentreStatistics } from "@/components/centre-statistics";
 
 export default function CentrePage() {

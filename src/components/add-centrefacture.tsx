@@ -84,7 +84,7 @@ export function AddFacture({ isUpdate = false, factureId = null, centreId = null
   
   useEffect(() => {
     
-    if (isUpdate && factureId && centreId) {
+    if (isUpdate && factureId ) {
       // Fetch the existing centre data and populate the form
       const fetchFactureData = async () => {
         const response = await api.get(`/factures/${factureId}`);
@@ -94,12 +94,12 @@ export function AddFacture({ isUpdate = false, factureId = null, centreId = null
       };
       fetchFactureData();
     }
-  }, [isUpdate, factureId,centreId, form]);
+  }, [isUpdate, factureId, form]);
   useEffect(() => {
     const { eau,  electricite } = form.getValues();
     const calculatedTotal = eau + electricite ; // Adjust the calculation if needed
     form.setValue("total", calculatedTotal);
-  }, [form.watch("eau"), form.watch("electricite")]);
+  }, [form, form.watch("eau"), form.watch("electricite")]);
 
   const { data: centres } = useQuery("centres", getCentres);
 
