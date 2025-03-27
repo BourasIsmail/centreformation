@@ -3,7 +3,7 @@ import { getCookie, deleteCookie } from "cookies-next";
 import { UserInfo } from "../type/UserInfo";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://cfa.entraide.ma/api",
   headers: {
     "Content-Type": "application/json",
   },
