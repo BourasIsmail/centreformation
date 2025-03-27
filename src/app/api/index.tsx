@@ -18,8 +18,8 @@ api.interceptors.response.use(
     }
     if (error.response?.status === 403) {
       console.error("Forbidden access");
-      //deleteCookie("token");
-      //window.location.href = "/login";
+      deleteCookie("token");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
