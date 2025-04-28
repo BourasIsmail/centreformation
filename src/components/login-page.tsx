@@ -49,7 +49,7 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="flex w-full lg:w-1/2 flex-col px-8 py-12 justify-center">
+      <div className="flex w-full lg:w-[40%] flex-col px-8 py-12 justify-center">
         <div className="mb-12">
           <div className="mb-8">
             <Image
@@ -117,15 +117,16 @@ export function LoginPage() {
           </form>
         </div>
       </div>
-      <div className="hidden lg:flex w-1/2 bg-[#f0f9f4] items-center justify-center p-12">
-        <Image
-          alt="Login illustration"
-          className="w-full max-w-2xl"
-          height={600}
-          width={600}
-          src="/entraide.png"
-          priority
-        />
+      <div
+          className="hidden lg:flex w-[70%] items-center justify-center bg-cover bg-center bg-no-repeat min-h-screen"
+          style={{
+            backgroundImage: "url('/back.jpeg')",
+            backgroundSize: '100% 100%'
+          }}
+      >
+
+
+
       </div>
     </div>
   );
