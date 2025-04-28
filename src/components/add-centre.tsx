@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getAllProvinces } from "@/app/api/province"
@@ -43,7 +42,6 @@ const formSchema = z.object({
     dateConstruction: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
         message: "Format de date invalide. Utilisez YYYY-MM-DD.",
     }),
-    telephone: z.string().regex(/^\+?[0-9]{10,14}$/, { message: "Numéro de téléphone invalide." }),
     province: z.object({ id: z.number() }).refine((value) => value.id > 0, {
         message: "Veuillez sélectionner une province.",
     }),
@@ -61,9 +59,7 @@ const formSchema = z.object({
         message: "Veuillez sélectionner un proprietaire.",
     }),
     superficie: z.number().positive({ message: "La superficie doit être un nombre positif." }),
-    utilisation: z.string().min(2, { message: "L'utilisation doit contenir au moins 2 caractères." }),
-    etat: z.string().min(2, { message: "L'état doit contenir au moins 2 caractères." }),
-    electricite: z.string().min(2, { message: "Veuillez spécifier l'état de l'électricité." }),
+    electricite: z.string().min(2, { message: "Veuillez spécifier qui paye l'électricité." }),
     telephoneFixe: z.string().regex(/^\+?[0-9]{10,14}$/, {
         message: "Numéro de téléphone fixe invalide.",
     }),
@@ -82,11 +78,10 @@ const formSchema = z.object({
     nbrPersonneOperationelApresFormation: z.number().int().nonnegative({
         message: "Le nombre de personnes doit être un entier positif ou zéro.",
     }),
-    coutEstimationAmenagement: z.number().nonnegative({ message: "Le coût doit être un nombre positif ou zéro." }),
     coutEstimationEquipement: z.number().nonnegative({ message: "Le coût doit être un nombre positif ou zéro." }),
-    observation: z.string().optional(),
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
+    naturePropriete: z.string().min(2, { message: "La nature de la propriété doit contenir au moins 2 caractères." }),
 })
 
 interface AddCentreProps {
@@ -116,7 +111,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             nomAr: "",
             typeCentre: { id: 0 },
             dateConstruction: "",
-            telephone: "",
             commune: { id: 0 },
             province: { id: 0 },
             adresse: "",
@@ -124,8 +118,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             milieuImplantation: { id: 0 },
             proprieteDuCentre: { id: 0 },
             superficie: 0,
-            utilisation: "",
-            etat: "",
             electricite: "",
             telephoneFixe: "",
             internet: "",
@@ -135,18 +127,16 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             nbrImprimante: 0,
             nbrPersonneConnaissanceInfo: 0,
             nbrPersonneOperationelApresFormation: 0,
-            coutEstimationAmenagement: 0,
             coutEstimationEquipement: 0,
-            observation: "",
             latitude: 0,
             longitude: 0,
+            naturePropriete: "",
         },
     })
-    const possessionValue = form.watch("possession"); // Watch the "possession" field
-    const provinceId = form.watch("province.id");
+    const possessionValue = form.watch("possession") // Watch the "possession" field
+    const provinceId = form.watch("province.id")
 
     useEffect(() => {
-        
         if (user?.province && user?.roles === "ADMIN_ROLES") {
             if (user?.province?.id) {
                 form.setValue("province", { id: user.province.id }) // Set province value in the form
@@ -166,8 +156,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
             fetchCentreData()
         }
     }, [isUpdate, centreId, form])
-    
-    
+
     const { data: provinces } = useQuery({
         queryKey: "provinces",
         queryFn: getAllProvinces,
@@ -178,13 +167,13 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
         queryFn: getProprieteDuCentres,
     })
 
-    const { data: communes , refetch: refetchCommunes } = useQuery({
+    const { data: communes, refetch: refetchCommunes } = useQuery({
         queryKey: ["commune", provinceId],
         queryFn: () => getCommuneByProvince(provinceId),
         enabled: !!provinceId,
     })
 
-    const { data: personnels , refetch: refetchPersonnels } = useQuery({
+    const { data: personnels, refetch: refetchPersonnels } = useQuery({
         queryKey: ["responsable", provinceId],
         queryFn: () => getPersonnelByProvince(provinceId),
         enabled: !!provinceId,
@@ -199,7 +188,7 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
         queryKey: "typeCentre",
         queryFn: getTypeCentre,
     })
-    
+
     const handleMapClick = React.useCallback(
         (lat: number, lng: number) => {
             form.setValue("latitude", lat)
@@ -312,7 +301,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
-                                
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -331,19 +319,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="telephone"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Téléphone</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Numéro de téléphone" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
                                     name="adresse"
                                     render={({ field }) => (
                                         <FormItem>
@@ -355,46 +330,57 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                    control={form.control}
+                                    name="telephoneFixe"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Téléphone fixe</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Numéro de téléphone fixe" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {user?.roles === "SUPER_ADMIN_ROLES" && (
                                     <FormField
-  control={form.control}
-  name="province"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Province</FormLabel>
-      <Select
-        value={field.value?.id ? field.value.id.toString() : ""}
-        onValueChange={(value) => {
-          const selectedProvince = provinces?.find((p) => p.id === Number(value));
-          if (selectedProvince) {
-            field.onChange({ id: selectedProvince.id });
-            refetchCommunes();
-            refetchPersonnels();
-            }
-        }}
-      >
-        <FormControl>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionnez une province" />
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          {provinces?.map((province) => (
-            <SelectItem key={province.id} value={province.id?.toString() ?? ""}>
-              {province.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-
-                                    
+                                        control={form.control}
+                                        name="province"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Province</FormLabel>
+                                                <Select
+                                                    value={field.value?.id ? field.value.id.toString() : ""}
+                                                    onValueChange={(value) => {
+                                                        const selectedProvince = provinces?.find((p) => p.id === Number(value))
+                                                        if (selectedProvince) {
+                                                            field.onChange({ id: selectedProvince.id })
+                                                            refetchCommunes()
+                                                            refetchPersonnels()
+                                                        }
+                                                    }}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Sélectionnez une province" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {provinces?.map((province) => (
+                                                            <SelectItem key={province.id} value={province.id?.toString() ?? ""}>
+                                                                {province.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 )}
                                 {user?.roles === "ADMIN_ROLES" && (
                                     <div>
@@ -411,9 +397,9 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                             <Select
                                                 value={field.value?.id ? field.value.id.toString() : ""}
                                                 onValueChange={(value) => {
-                                                    const selectedCommune = communes?.find((p) => p.id === Number(value));
+                                                    const selectedCommune = communes?.find((p) => p.id === Number(value))
                                                     if (selectedCommune) {
-                                                        field.onChange(selectedCommune);
+                                                        field.onChange(selectedCommune)
                                                     }
                                                 }}
                                             >
@@ -434,6 +420,9 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
                                     name="responsable"
@@ -466,9 +455,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
                                     name="milieuImplantation"
@@ -535,6 +521,47 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="electricite"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Qui paye l'eau et l'éléctricité</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Indiquez qui paye l'eau et l'éléctricité"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="internet"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Internet</FormLabel>
+                                            <Select onValueChange={(value) => field.onChange(value)} value={field.value ?? ""}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionnez une option" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="oui">Oui</SelectItem>
+                                                    <SelectItem value="non">Non</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="superficie"
@@ -557,118 +584,69 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
-                                    name="utilisation"
+                                    name="naturePropriete"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Utilisation</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Utilisation du centre" {...field} />
-                                            </FormControl>
+                                            <FormLabel>Nature de la propriété</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionnez la nature" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Villa">Villa</SelectItem>
+                                                    <SelectItem value="Appartement">Appartement</SelectItem>
+                                                    <SelectItem value="Immeuble">Immeuble</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="etat"
+                                    name="possession"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>État</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="État du centre" {...field} />
-                                            </FormControl>
+                                            <FormLabel>Etat foncier</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionnez l'etat foncier du centre" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Entraide">Entraide</SelectItem>
+                                                    <SelectItem value="loye">Loyé</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="electricite"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Électricité</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="État de l'électricité" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {possessionValue === "loye" && (
+                                    <FormField
+                                        control={form.control}
+                                        name="montantAllocation"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Montant d'allocation</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        {...field}
+                                                        onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="telephoneFixe"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Téléphone fixe</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Numéro de téléphone fixe" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="internet"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Internet</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="État de la connexion internet" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-<FormField
-  control={form.control}
-  name="possession" 
-  render={({ field }) => (
-    <FormItem className="col-span-1">
-      <FormLabel>Possession</FormLabel> 
-      <Select
-        onValueChange={field.onChange}
-        value={field.value ?? ""} // Ensure value is never undefined
-      >
-        <FormControl>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Sélectionnez la possession" /> 
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          <SelectItem value="Entraide">Entraide</SelectItem> 
-          <SelectItem value="loye">Loyé</SelectItem> 
-        </SelectContent>
-      </Select>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-
-{/* Show "Montant d'allocation" only if possession === "Entraide" */}
-{possessionValue === "loye" && (
-  <FormField
-    control={form.control}
-    name="montantAllocation"
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>Montant d'allocation</FormLabel>
-        <FormControl>
-          <Input
-            type="number"
-            {...field}
-            onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-)}
                                 <FormField
                                     control={form.control}
                                     name="nbrPC"
@@ -686,9 +664,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
                                     name="nbrImprimante"
@@ -723,6 +698,9 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                         </FormItem>
                                     )}
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
                                     name="nbrPersonneOperationelApresFormation"
@@ -734,26 +712,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                                     type="number"
                                                     {...field}
                                                     onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10))}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="coutEstimationAmenagement"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Coût estimé d'aménagement</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    {...field}
-                                                    onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -778,20 +736,6 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
                                     )}
                                 />
                             </div>
-
-                            <FormField
-                                control={form.control}
-                                name="observation"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Observations</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Observations supplémentaires" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
 
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold">Localisation sur la carte</h3>
@@ -858,4 +802,3 @@ export function AddCentre({ isUpdate = false, centreId = null }: AddCentreProps)
         </div>
     )
 }
-

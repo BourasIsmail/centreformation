@@ -75,9 +75,9 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
       dateEffet: "",
       observation: "",
     },
-  }); 
+  });
 
-  
+
 
   const { data: filieres , refetch : refetchFilieres} = useQuery({
     queryKey: ["filiere", form.watch("activite.id")],
@@ -93,13 +93,13 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
     enabled: !!form.watch("centre.id"),
   });
   const { data: centres } = useQuery("centres", getCentres);
-  
-   
+
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
 
     try {
-          
+
           if (isUpdate && suivieId) {
             await api.put(`/suivies/${suivieId}`, values);
             toast({
@@ -134,11 +134,11 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
           <CardTitle>{isUpdate ? "Mettre à jour le suivie" : "Ajouter un suivie"}</CardTitle>
           <CardDescription>
             Remplissez le formulaire pour {isUpdate ? "mettre à jour le suivie" : "ajouter un facture"}.
-          </CardDescription>      
+          </CardDescription>
           </CardHeader>
       <CardContent>
         <Form {...form}>
-          
+
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -184,7 +184,7 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Activité</FormLabel>
-                    <Select 
+                    <Select
                     value={field.value?.id ? field.value.id.toString() : ""}
                     onValueChange={(value) => {
                       const selectedActivite = activites?.find((p) => p.id === parseInt(value));
@@ -202,7 +202,7 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
                       <SelectContent>
                         {activites?.map((activite) => (
                           <SelectItem key={activite.id} value={activite?.id?.toString() || ""}>
-                            {activite.nom}
+                            {activite.typeActivite?.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -226,7 +226,7 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
                       <SelectContent>
                         {filieres?.map((filiere) => (
                           <SelectItem key={filiere.id} value={filiere?.id?.toString() || ""}>
-                            {filiere.nom}
+                            {filiere.specialite}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -235,7 +235,7 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
                   </FormItem>
                 )}
               />
-              
+
               <FormField
               control={form.control}
               name="etatDeFormation"
@@ -277,7 +277,7 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
                 <FormControl>
                 <textarea
                  placeholder="Observation"
-                rows={4} 
+                rows={4}
                 className="w-full border rounded-md p-2"
                 {...field}
                 />
@@ -288,7 +288,7 @@ export function AddSuiviePage({ isUpdate = false, beneficiaireId, suivieId }: Ad
             />
             </div>
             <Button type="submit">{isUpdate ? "Mettre à jour le suivie" : "Ajouter un suivie"}</Button>
-            
+
           </form>
         </Form>
       </CardContent>

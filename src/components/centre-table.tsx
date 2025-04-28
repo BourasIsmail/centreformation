@@ -75,20 +75,7 @@ export function CentreTableComponent() {
   const [typeCentreFilter, setTypeCentreFilter] = React.useState<string[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
   const router = useRouter();
-  const statuses = [
-    {
-      value: "Bon état",
-      label: "Bon état",
-      color: "bg-green-200 text-green-800",
-    },
-    {
-      value: "Nécessite rénovation",
-      label: "Nécessite rénovation",
-      color: "bg-yellow-200 text-yellow-800",
-    },
-    { value: "Neuf", label: "Neuf", color: "bg-blue-200 text-blue-800" },
-    { value: "Excellent", label: "Excellent", color: "bg-green-500 text-white" },
-  ];
+
     const columns: ColumnDef<Centre>[] = [
     {
       id: "select",
@@ -149,23 +136,11 @@ export function CentreTableComponent() {
       header: "Adresse",
       cell: ({ row }) => <div>{row.getValue("adresse")}</div>,
     },
-    {
-      accessorKey: "etat",
-      header: "État",
-      cell: ({ row }) => {
-        const etat = row.getValue("etat") as string;
-        const status = statuses.find((s) => s.value === etat);
-        return (
-          <Badge
-            className={`font-normal ${
-              status?.color || "bg-gray-200 text-gray-800"
-            }`}
-          >
-            {etat}
-          </Badge>
-        );
+      {
+        accessorKey: "possession",
+        header: "Etat Foncier",
+        cell: ({ row }) => <div>{row.getValue("possession")}</div>,
       },
-    },
     {
       id: "actions",
       enableHiding: false,
@@ -229,11 +204,7 @@ export function CentreTableComponent() {
     },
   });
 
-  React.useEffect(() => {
-    table
-      .getColumn("etat")
-      ?.setFilterValue(statusFilter.length ? statusFilter : undefined);
-  }, [statusFilter, table]);
+
 
   React.useEffect(() => {
     table
@@ -345,75 +316,6 @@ export function CentreTableComponent() {
                   className="w-full justify-center text-sm"
                   onClick={() => {
                     setTypeCentreFilter([]);
-                  }}
-                >
-                  Réinitialiser les filtres
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="border-dashed">
-                État
-                <ChevronDownIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
-              <div className="p-2">
-                <div className="flex items-center px-2 pb-2">
-                  <MagnifyingGlassIcon className="mr-2 h-4 w-4 opacity-50" />
-                  <Input
-                    placeholder="Rechercher un statut..."
-                    className="h-8 w-full"
-                    onChange={(event) => {
-                      const searchValue = event.target.value.toLowerCase();
-                      const filteredStatuses = statuses
-                        .filter((status) =>
-                          status.label.toLowerCase().includes(searchValue)
-                        )
-                        .map((status) => status.value);
-                      setStatusFilter(filteredStatuses);
-                    }}
-                  />
-                </div>
-                <Separator />
-              </div>
-              <div className="max-h-[300px] overflow-auto px-2 py-2">
-                {statuses.map((status) => (
-                  <div
-                    key={status.value}
-                    className="flex items-center space-x-2 py-1.5"
-                  >
-                    <Checkbox
-                      checked={statusFilter.includes(status.value)}
-                      onCheckedChange={(checked) => {
-                        setStatusFilter((prev) =>
-                          checked
-                            ? [...prev, status.value]
-                            : prev.filter((s) => s !== status.value)
-                        );
-                      }}
-                    />
-                    <div className="flex flex-1 items-center space-x-2">
-                      <span className="text-sm">{status.label}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {
-                        centres?.filter((item) => item.etat === status.value)
-                          .length
-                      }
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <Separator />
-              <div className="p-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-center text-sm"
-                  onClick={() => {
-                    setStatusFilter([]);
                   }}
                 >
                   Réinitialiser les filtres

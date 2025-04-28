@@ -2,6 +2,8 @@ import { TypeActivite } from "./TypeActivite";
 
 export type Filiere = {
   id?: number;
-  nom?: string;
+  filiere?: string;
+  secteur?: string;
+  specialite?: string;
   typeActivite?: TypeActivite;
 };

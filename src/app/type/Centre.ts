@@ -12,7 +12,6 @@ export type Centre = {
   nomAr?: string;
   typeCentre?: TypeCentre;
   dateConstruction?: string;
-  telephone?: string;
   province?: Province;
   commune?: Commune;
   adresse?: string;
@@ -20,9 +19,8 @@ export type Centre = {
   milieuImplantation?: MilieuImplantation;
   proprieteDuCentre?: ProprieteDuCentre;
   superficie?: number;
-  utilisation?: string;
-  etat?: string;
   electricite?: string;
+  naturePropriete?: string;
   telephoneFixe?: string;
   internet?: string;
   possession?: string;
@@ -31,10 +29,8 @@ export type Centre = {
   nbrImprimante?: number;
   nbrPersonneConnaissanceInfo?: number;
   nbrPersonneOperationelApresFormation?: number;
-  coutEstimationAmenagement?: number;
   coutEstimationEquipement?: number;
-  observation?: string;
-    longitude?: number;
-    latitude?: number;
+  longitude?: number;
+  latitude?: number;
   factures?: CentreFacture[];
 };
